@@ -55,6 +55,12 @@ export class ValidationError extends AppError {
   }
 }
 
+export class TooManyRequestsError extends AppError {
+  constructor(message = 'Too many requests, please try again later', details: unknown = null) {
+    super(message, 429, 'TOO_MANY_REQUESTS', details);
+  }
+}
+
 export function notFoundHandler(req: Request, _res: Response, next: NextFunction): void {
   next(new NotFoundError(`Route ${req.method} ${req.originalUrl} not found`));
 }
