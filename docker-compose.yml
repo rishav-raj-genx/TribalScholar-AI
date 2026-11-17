@@ -1,0 +1,75 @@
+name: tribalscholar-ai
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tribalscholar-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tribalscholar}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tribalscholar_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-tribalscholar}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tribalscholar} -d ${POSTGRES_DB:-tribalscholar}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tribalscholar-net
+
+  minio:
+    image: minio/minio:latest
+    container_name: tribalscholar-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin123}
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tribalscholar-net
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: tribalscholar-minio-init
+    depends_on:
+      - minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin123}
+      MINIO_BUCKET: ${MINIO_BUCKET:-tribalscholar-docs}
+    entrypoint: >
+      /bin/sh -c "
+      until /usr/bin/mc alias set local http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD}; do
+        echo 'Waiting for MinIO service...';
+        sleep 2;
+      done;
+      /usr/bin/mc mb --ignore-existing local/$${MINIO_BUCKET};
+      echo 'Bucket $${MINIO_BUCKET} ready.';
+      exit 0;
+      "
+    networks:
+      - tribalscholar-net
+
+volumes:
+  postgres_data:
+    driver: local
+  minio_data:
+    driver: local
+
+networks:
+  tribalscholar-net:
+    driver: bridge

@@ -1,0 +1,319 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==============================================================================
+// Enums
+// ==============================================================================
+
+enum Role {
+  APPLICANT
+  SCRUTINY_OFFICER
+  SELECTION_OFFICER
+  ADMIN
+}
+
+enum SchemeCode {
+  NFST
+  NOS
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_SCRUTINY
+  DEFICIENT
+  RESUBMITTED
+  SCRUTINY_VERIFIED
+  SELECTION_PENDING
+  PROVISIONALLY_SELECTED
+  REJECTED
+}
+
+enum DocumentType {
+  AADHAAR_CARD
+  CASTE_CERTIFICATE
+  INCOME_CERTIFICATE
+  DOMICILE_CERTIFICATE
+  MARKSHEET_10TH
+  MARKSHEET_12TH
+  MARKSHEET_UG
+  MARKSHEET_PG
+  ADMISSION_OFFER_LETTER
+  BONAFIDE_CERTIFICATE
+  FEE_RECEIPT
+  BANK_PASSBOOK
+  SYNOPSIS_RESEARCH_PROPOSAL
+  JOINING_REPORT
+  OTHER
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  FLAGGED_DEFICIENT
+  REJECTED
+}
+
+enum DeficiencyStatus {
+  OPEN
+  RESOLVED
+  WAIVED
+}
+
+enum ReviewDecision {
+  RECOMMENDED_FOR_SELECTION
+  DEFICIENCY_FLAGGED
+  REJECTED
+}
+
+enum PostSelectionStatus {
+  AWARD_LETTER_ISSUED
+  VISA_PENDING
+  JOINING_REPORT_SUBMITTED
+  DISBURSEMENT_ACTIVE
+  COMPLETED
+  TERMINATED
+}
+
+enum AuditAction {
+  USER_LOGIN
+  USER_REGISTER
+  APPLICATION_CREATED
+  APPLICATION_UPDATED
+  APPLICATION_SUBMITTED
+  DOCUMENT_UPLOADED
+  OCR_PROCESSED
+  RULE_EVALUATED
+  DEFICIENCY_RAISED
+  DEFICIENCY_RESOLVED
+  OFFICER_REVIEW_SUBMITTED
+  SELECTION_DECISION_RECORDED
+  SCHEME_RULE_MODIFIED
+}
+
+// ==============================================================================
+// Models
+// ==============================================================================
+
+model User {
+  id                    String             @id @default(uuid())
+  email                 String             @unique
+  passwordHash          String
+  role                  Role               @default(APPLICANT)
+  fullName              String
+  phone                 String?
+  isActive              Boolean            @default(true)
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  applicantProfile      ApplicantProfile?
+  applications          Application[]      @relation("ApplicantApplications")
+  officerReviews        OfficerReview[]    @relation("OfficerReviews")
+  deficienciesRaised    DeficiencyRecord[] @relation("OfficerDeficiencies")
+  auditLogs             AuditLog[]         @relation("UserAuditLogs")
+
+  @@index([role])
+  @@index([email])
+}
+
+model ApplicantProfile {
+  id                    String             @id @default(uuid())
+  userId                String             @unique
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dateOfBirth           DateTime
+  gender                String
+  casteCommunity        String
+  subTribe              String?
+  fatherOrSpouseName    String
+  annualIncome          Decimal            @db.Decimal(12, 2)
+  aadhaarNumberHash     String?            @unique
+  addressLine           String
+  district              String
+  state                 String
+  pincode               String
+  bankAccountNumberHash String?
+  bankIfsc              String?
+  bankName              String?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  @@index([state, district])
+  @@index([casteCommunity])
+}
+
+model Scheme {
+  id                    String             @id @default(uuid())
+  code                  SchemeCode         @unique
+  name                  String
+  description           String
+  isActive              Boolean            @default(true)
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  versions              SchemeVersion[]
+  applications          Application[]
+
+  @@index([code])
+}
+
+model SchemeVersion {
+  id                    String             @id @default(uuid())
+  schemeId              String
+  scheme                Scheme             @relation(fields: [schemeId], references: [id], onDelete: Cascade)
+  versionNumber         Int
+  academicYear          String
+  totalSlots            Int
+  incomeCeiling         Decimal            @db.Decimal(12, 2)
+  eligibilityRules      Json
+  documentRequirements  Json
+  scoringConfig         Json?
+  startDate             DateTime
+  endDate               DateTime
+  isPublished           Boolean            @default(false)
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  applications          Application[]
+
+  @@unique([schemeId, versionNumber])
+  @@index([academicYear])
+  @@index([isPublished])
+}
+
+model Application {
+  id                    String             @id @default(uuid())
+  applicationNumber     String             @unique
+  applicantId           String
+  applicant             User               @relation("ApplicantApplications", fields: [applicantId], references: [id], onDelete: Restrict)
+  schemeId              String
+  scheme                Scheme             @relation(fields: [schemeId], references: [id], onDelete: Restrict)
+  schemeVersionId       String
+  schemeVersion         SchemeVersion      @relation(fields: [schemeVersionId], references: [id], onDelete: Restrict)
+  status                ApplicationStatus  @default(DRAFT)
+  formData              Json
+  meritScore            Float?
+  ruleEvaluationResults Json?
+  submittedAt           DateTime?
+  verifiedAt            DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  documents             ApplicationDocument[]
+  deficiencies          DeficiencyRecord[]
+  reviews               OfficerReview[]
+  postSelection         PostSelectionRecord?
+  auditLogs             AuditLog[]
+
+  @@index([status])
+  @@index([applicantId])
+  @@index([schemeId, schemeVersionId])
+  @@index([submittedAt])
+}
+
+model ApplicationDocument {
+  id                    String             @id @default(uuid())
+  applicationId         String
+  application           Application        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  documentType          DocumentType
+  fileName              String
+  fileSize              Int
+  mimeType              String
+  s3Key                 String
+  s3Bucket              String
+  verificationStatus    VerificationStatus @default(PENDING)
+  ocrExtractedFields    Json?
+  ocrConfidence         Float?
+  crossDocValidation    Json?
+  rejectionReason       String?
+  uploadedAt            DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  deficiencies          DeficiencyRecord[]
+
+  @@index([applicationId, documentType])
+  @@index([verificationStatus])
+}
+
+model DeficiencyRecord {
+  id                    String             @id @default(uuid())
+  applicationId         String
+  application           Application        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  documentId            String?
+  document              ApplicationDocument? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  fieldOrCriteria       String
+  deficiencyCode        String
+  description           String
+  status                DeficiencyStatus   @default(OPEN)
+  raisedByOfficerId     String
+  raisedByOfficer       User               @relation("OfficerDeficiencies", fields: [raisedByOfficerId], references: [id], onDelete: Restrict)
+  resolvedAt            DateTime?
+  resolutionNotes       String?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  @@index([applicationId, status])
+  @@index([raisedByOfficerId])
+}
+
+model OfficerReview {
+  id                    String             @id @default(uuid())
+  applicationId         String
+  application           Application        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  officerId             String
+  officer               User               @relation("OfficerReviews", fields: [officerId], references: [id], onDelete: Restrict)
+  decision              ReviewDecision
+  remarks               String
+  checklistResults      Json
+  aiFindingsAgreement   Boolean            @default(true)
+  overrideReason        String?
+  reviewedAt            DateTime           @default(now())
+
+  @@index([applicationId])
+  @@index([officerId])
+  @@index([decision])
+}
+
+model PostSelectionRecord {
+  id                    String             @id @default(uuid())
+  applicationId         String             @unique
+  application           Application        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  status                PostSelectionStatus @default(AWARD_LETTER_ISSUED)
+  awardLetterUrl        String?
+  sanctionOrderNumber   String?
+  sanctionedAmount      Decimal?           @db.Decimal(12, 2)
+  visaStatus            String?
+  joiningReportSubmitted Boolean           @default(false)
+  joiningDate           DateTime?
+  disbursementDetails   Json?
+  milestoneLogs         Json?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  @@index([status])
+}
+
+model AuditLog {
+  id                    String             @id @default(uuid())
+  applicationId         String?
+  application           Application?       @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  userId                String?
+  user                  User?              @relation("UserAuditLogs", fields: [userId], references: [id], onDelete: SetNull)
+  action                AuditAction
+  details               Json
+  ipAddress             String?
+  userAgent             String?
+  previousState         String?
+  newState              String?
+  timestamp             DateTime           @default(now())
+
+  @@index([applicationId])
+  @@index([userId])
+  @@index([action])
+  @@index([timestamp])
+}

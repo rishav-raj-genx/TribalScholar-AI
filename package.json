@@ -1,0 +1,18 @@
+{
+  "name": "tribalscholar-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TribalScholar AI: Intelligent Scholarship & Fellowship Operations Platform (SIH26239)",
+  "packageManager": "pnpm@11.24.0",
+  "scripts": {
+    "build": "pnpm -r --if-present build",
+    "lint": "pnpm -r --if-present lint",
+    "test": "pnpm -r --if-present test",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}
