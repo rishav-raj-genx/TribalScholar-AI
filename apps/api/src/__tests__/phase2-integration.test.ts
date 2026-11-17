@@ -90,7 +90,9 @@ describe('Phase 2 End-to-End Integration Suite', () => {
 
     // Verify the latest AuditLog record was persisted with proxy IP and User-Agent
     const logs = await auditService.getAuditTrail('User', scrutinyUserId, { order: 'desc' });
-    const latestLoginAudit = logs.find((l) => l.action === AuditAction.USER_LOGIN);
+    const latestLoginAudit = logs.find(
+      (l) => l.action === AuditAction.USER_LOGIN && l.userAgent === 'TribalScholar-OfficerConsole/2.0'
+    );
     expect(latestLoginAudit).toBeDefined();
     expect(latestLoginAudit?.userId).toBe(scrutinyUserId);
     expect(latestLoginAudit?.ipAddress).toBe('203.0.113.195');

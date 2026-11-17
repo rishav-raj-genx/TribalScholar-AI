@@ -3,9 +3,9 @@
 ## 1. Project Overview & Tracking Summary
 - **Problem Statement ID:** SIH26239
 - **Project Title:** TribalScholar AI (Intelligent Scholarship & Fellowship Operations Platform)
-- **Current Phase:** Phase 2 - Backend Security, Governance & Core Integration (COMPLETED)
-- **Next Phase:** Phase 3 - Officer Review & Deficiency Resolution Workflow
-- **Status:** Phase 1 and Phase 2 Complete (Prompts 2.1, 2.2, 2.3, and 2.4 COMPLETED)
+- **Current Phase:** Phase 3 - Officer Review & Deficiency Resolution Workflow (IN PROGRESS)
+- **Next Phase:** Phase 4 - Selection, Post-Selection & Governance
+- **Status:** Phase 1 and Phase 2 Complete; Phase 3, Prompts 3.1, 3.2 & 3.3 COMPLETED
 
 ---
 
@@ -31,7 +31,18 @@
 
 ---
 
-## 4. High-Level Multi-Phase Master Roadmap
+## 4. Phase 3 Tracking Table: Scheme Rule Engine, Consistency & Verification
+
+| Prompt ID | Task Description | Status | Key Deliverables & Files |
+| :--- | :--- | :--- | :--- |
+| **3.1** | **Deterministic Scheme Rule Engine & Document Completeness Evaluator** | **COMPLETED** | `apps/api/src/modules/ruleEngine/eligibilityEvaluator.ts`, `apps/api/src/__tests__/eligibilityEvaluator.test.ts` |
+| **3.2** | **Cross-Document Consistency Evaluator & Unified Rule Orchestrator** | **COMPLETED** | `apps/api/src/modules/ruleEngine/consistencyEvaluator.ts`, `apps/api/src/modules/ruleEngine/index.ts`, `apps/api/src/__tests__/consistencyEvaluator.test.ts` |
+| **3.3** | **Versioned Scheme Management, Publication & Simulation API** | **COMPLETED** | `apps/api/src/modules/schemes/schemes.service.ts`, `apps/api/src/modules/schemes/schemes.routes.ts`, `apps/api/src/__tests__/schemes.routes.test.ts` |
+| **3.4** | **Rule Engine Edge Cases, Unified Simulation Verification & Phase 3 Handoff** | **COMPLETED** | `apps/api/src/__tests__/unifiedEvaluatorEdgeCases.test.ts`, `DEVELOPMENT_STATUS.md`, `HANDOFF.md` |
+
+---
+
+## 5. High-Level Multi-Phase Master Roadmap
 
 ### Phase 1: Foundation, Infrastructure & Core Engine (COMPLETED)
 - [x] **Prompt 1.1:** Monorepo, base TypeScript, Docker Compose (Postgres 16, MinIO), continuity docs.
@@ -45,19 +56,18 @@
 - [x] **Prompt 2.3:** External ecosystem adapter interfaces and deterministic simulation providers for DigiLocker, DBT, and BHASHINI with explicit `isSimulatedMock: true` metadata.
 - [x] **Prompt 2.4:** Wire all Phase 2 modules in `app.ts`, configure sliding-window rate limiters, reverse proxy trust, security headers, correlation IDs, and execute end-to-end integration tests.
 
-### Phase 3: Officer Review, Deficiency Resolution & Document Intelligence Workflow (Next)
-- [ ] **Prompt 3.1:** Document Ingestion, S3 integration, and FastAPI AI OCR microservice pipeline.
-- [ ] **Prompt 3.2:** Deficiency tagging, structured scholar deficiency resolution and targeted resubmission workflow.
-- [ ] **Prompt 3.3:** Split-screen scrutiny officer verification UI and decision support.
-- [ ] **Prompt 3.4:** State machine transitions (`UNDER_SCRUTINY` -> `DEFICIENT` -> `SCRUTINY_VERIFIED`).
+### Phase 3: Scheme Rule Engine, Consistency & Verification (COMPLETED)
+- [x] **Prompt 3.1:** Pure, deterministic Eligibility and Document Completeness Evaluator processing `SchemeVersion` JSON DSL (`EQ`, `NEQ`, `LTE`, `GTE`, `IN`, `BOOLEAN`) against applicant profile data, form data, and uploaded document types without hard-coded scheme branches.
+- [x] **Prompt 3.2:** Cross-Document Consistency and Confidence Evaluator supporting `FUZZY_TOKEN_RATIO`, `NORMALIZED_CONTAINS`, `NUMERIC_EXACT`, and `NON_EMPTY_PRESENT` matchers, OCR confidence threshold checks, and unified `evaluateApplicationRules()` orchestrator.
+- [x] **Prompt 3.3:** Versioned Scheme Management API (`/api/v1/schemes/active`, `/:code/versions`, `/versions/:versionId/publish`, `/versions/:versionId/clone`, `/versions/:versionId/simulate`) with Rule DSL Zod validation and immutable AuditLog recording.
+- [x] **Prompt 3.4:** Comprehensive edge case verification (missing/null fields, null/malformed OCR documents, multi-version rule isolation, parallel determinism), zero database side-effect simulation guarantee, and Phase 3 handoff documentation.
 
-### Phase 3: Officer Review & Deficiency Resolution Workflow
-- Split-screen document inspection and verification UI for scrutiny officers.
-- Deficiency tagging and notification system for scholars.
-- Scholar resubmission portal with targeted criteria remediation.
-- State machine transitions and re-verification triggers.
+### Phase 4: Intake Portal, Document Ingestion & AI OCR Service (UPCOMING)
+- Document Ingestion, MinIO S3 integration, and FastAPI AI OCR microservice pipeline (`services/ai-ocr`).
+- Deficiency tagging, structured scholar deficiency resolution and targeted resubmission workflow.
+- Split-screen scrutiny officer verification UI and decision support.
 
-### Phase 4: Selection, Post-Selection & Governance
+### Phase 5: Selection, Post-Selection & Governance
 - Selection committee ranking, merit lists, and quota allocation.
 - Provisional award letters and sanction order generator.
 - Post-selection milestone tracking (joining report, fee disbursement, annual progress).
@@ -142,4 +152,57 @@
 - **Verification Results:**
   - `pnpm --filter @tribalscholar/api test`: 69/69 tests passed across 6 suites (`seed.test.ts`, `health.test.ts`, `auth.test.ts`, `audit.test.ts`, `adapters.test.ts`, `phase2-integration.test.ts`).
   - `pnpm --filter @tribalscholar/api build`: Exited 0 (clean compilation).
+  - `pnpm build`: Exited 0 (workspace clean).
+
+### Prompt 3.1 Completion Report (2026-11-18)
+- **Delivered Packages & Files:**
+  - `apps/api/src/modules/ruleEngine/eligibilityEvaluator.ts`: Pure, deterministic evaluation engine supporting full JSON DSL (`EQ`, `NEQ`, `LTE`, `GTE`, `LT`, `GT`, `IN`, `NOT_IN`, `BOOLEAN`, `CONTAINS`, `REGEX_MATCH`, `EXISTS`), nested dot-path resolution, automatic age calculation from DOB, disjunctive OR / conjunctive AND logical groups, document completeness checking, and structured deficiency aggregation without hard-coded scheme branching.
+  - `apps/api/src/__tests__/eligibilityEvaluator.test.ts`: Comprehensive test suite (25 tests) covering NFST and NOS Version 1 rules across passing and failing applicant profiles (non-ST category, income > Rs 6,00,000, missing ST caste certificate, age > 35, foreign QS rank > 500, missing admission letters, optional docs, operator matrices, and arbitrary custom schemes).
+- **Verification Results:**
+  - `pnpm --filter @tribalscholar/api test`: 94/94 tests passed across 7 suites (`seed.test.ts`, `health.test.ts`, `auth.test.ts`, `audit.test.ts`, `adapters.test.ts`, `phase2-integration.test.ts`, `eligibilityEvaluator.test.ts`).
+  - `pnpm --filter @tribalscholar/api build`: Exited 0 (strict TypeScript compilation passed).
+  - `pnpm build`: Exited 0 (clean monorepo build).
+
+### Prompt 3.2 Completion Report (2026-11-18)
+- **Delivered Packages & Files:**
+  - `apps/api/src/modules/ruleEngine/consistencyEvaluator.ts`: Cross-document consistency and OCR confidence evaluator supporting `FUZZY_TOKEN_RATIO`, `NORMALIZED_CONTAINS`, `NUMERIC_EXACT`, and `NON_EMPTY_PRESENT` matchers, producing field statuses (`Extracted`, `Consistent`, `Present`, `Mismatch`, `Low Confidence`) and structured deficiency records.
+  - `apps/api/src/modules/ruleEngine/index.ts`: Unified rule engine entrypoint exposing `evaluateApplicationRules()` which orchestrates eligibility, document completeness, and cross-document consistency into a single cohesive decision and deficiency package.
+  - `apps/api/src/__tests__/consistencyEvaluator.test.ts`: Test suite (14 tests) validating exact matches for Sample Applicant, Scheduled Tribe (ST), Rs 80,000 / year, and Competent Revenue Authority, name/income/category/authority mismatches, low-confidence OCR routing to officer scrutiny (`RuleSeverity.MANUAL_REVIEW`), and end-to-end `evaluateApplicationRules` workflows.
+- **Verification Results:**
+  - `pnpm --filter @tribalscholar/api test`: 108/108 tests passed across 8 suites (`seed.test.ts`, `health.test.ts`, `auth.test.ts`, `audit.test.ts`, `adapters.test.ts`, `phase2-integration.test.ts`, `eligibilityEvaluator.test.ts`, `consistencyEvaluator.test.ts`).
+  - `pnpm --filter @tribalscholar/api build`: Exited 0 (clean compilation).
+  - `pnpm build`: Exited 0 (clean monorepo build).
+
+### Prompt 3.3 Completion Report (2026-11-18)
+- **Delivered Packages & Files:**
+  - `apps/api/src/modules/schemes/schemes.service.ts`: Implemented `SchemesService` providing active scheme discovery with latest published version resolution, scheme version retrieval by code, strict Zod-validated rule version creation (`RuleConfigSchema`), atomic draft cloning (`cloneSchemeVersion`), draft editing (`updateSchemeVersion`), version publication with audit trail recording (`publishSchemeVersion`), and live dry-run simulation against sample payloads (`simulateSchemeVersion`).
+  - `apps/api/src/modules/schemes/schemes.routes.ts`: Mounted REST endpoints:
+    - `GET /api/v1/schemes/active`: Public/applicant discovery of active scholarship schemes with their published rule configurations.
+    - `GET /api/v1/schemes/:code/versions`: Officer/admin version history view.
+    - `POST /api/v1/schemes/:code/versions`: `SYSTEM_ADMIN` creation of new version drafts with validation against Rule DSL Zod schemas.
+    - `POST /api/v1/schemes/versions/:versionId/clone`: `SYSTEM_ADMIN` cloning of an existing version into a new draft.
+    - `PUT /api/v1/schemes/versions/:versionId`: `SYSTEM_ADMIN` modification of unpublished draft versions.
+    - `PATCH /api/v1/schemes/versions/:versionId/publish`: `SYSTEM_ADMIN` version publication logging to `AuditLog` and unpublishing prior active versions.
+    - `POST /api/v1/schemes/versions/:versionId/simulate`: `SYSTEM_ADMIN` dry-run simulation of application payloads against the rule engine.
+  - `apps/api/src/app.ts`: Mounted `/api/v1/schemes` route handler.
+  - `apps/api/src/__tests__/schemes.routes.test.ts`: 20 comprehensive integration tests validating public scheme discovery, version listing, draft creation, duplicate version rejection (409), draft updating, publishing with audit logging, draft cloning, dry-run simulations (passing vs failing), historical submission immutability, and RBAC rejection (401/403).
+- **Verification Results:**
+  - `pnpm --filter @tribalscholar/api test`: 128/128 tests passed across 9 suites (`seed.test.ts`, `health.test.ts`, `auth.test.ts`, `audit.test.ts`, `adapters.test.ts`, `phase2-integration.test.ts`, `eligibilityEvaluator.test.ts`, `consistencyEvaluator.test.ts`, `schemes.routes.test.ts`).
+  - `pnpm --filter @tribalscholar/api build`: Exited 0 (strict TypeScript compilation passed).
+  - `pnpm build`: Exited 0 (clean monorepo build across all packages).
+
+### Prompt 3.4 Completion Report (2026-11-18)
+- **Delivered Packages & Files:**
+  - `apps/api/src/modules/ruleEngine/index.ts`: Hardened `UnifiedApplicationEvaluationInput` to accept `null` for `extractedDocuments`, ensuring defensive, null-safe input handling.
+  - `apps/api/src/__tests__/unifiedEvaluatorEdgeCases.test.ts`: Added 15 comprehensive unit & integration tests validating:
+    - Missing & null profile/form handling (null profile, null form, non-object primitives at intermediate paths in dot traversal, malformed non-numeric values).
+    - Null, empty, and malformed OCR documents (null/undefined inputs, empty extractions, zero confidence routing to `RuleSeverity.MANUAL_REVIEW`, irrelevant doc type filtering).
+    - Multi-version rule isolation (evaluating NFST v1 ceiling 6,00,000 vs v2 ceiling 8,50,000; NOS v1 age 35/QS 500 vs v2 age 38/QS 800) with 50 concurrent interleaved executions confirming strict determinism.
+    - NOS Version 1 complete lifecycle simulation across passing international scholars and deficient profiles.
+    - Zero database side-effect simulation guarantee (zero rows created in `Application`, `ApplicationDocument`, or `DeficiencyRecord` during dry-runs).
+    - Immutable `AuditLog` generation on version publication (`SCHEME_RULE_MODIFIED`).
+  - `HANDOFF.md`: Comprehensive handoff documentation detailing Phase 3 completion and transition to Phase 4.
+- **Verification Results:**
+  - `pnpm --filter @tribalscholar/api test`: 143/143 tests passed across 10 suites (`seed.test.ts`, `health.test.ts`, `auth.test.ts`, `audit.test.ts`, `adapters.test.ts`, `phase2-integration.test.ts`, `eligibilityEvaluator.test.ts`, `consistencyEvaluator.test.ts`, `schemes.routes.test.ts`, `unifiedEvaluatorEdgeCases.test.ts`).
+  - `pnpm --filter @tribalscholar/api build`: Exited 0 (zero TypeScript errors).
   - `pnpm build`: Exited 0 (workspace clean).
