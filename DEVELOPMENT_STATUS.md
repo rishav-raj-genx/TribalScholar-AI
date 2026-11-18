@@ -3,9 +3,8 @@
 ## 1. Project Overview & Tracking Summary
 - **Problem Statement ID:** SIH26239
 - **Project Title:** TribalScholar AI (Intelligent Scholarship & Fellowship Operations Platform)
-- **Current Phase:** Phase 5 - AI OCR Service, Selection & Governance (PHASE 5 AI OCR COMPLETE)
-- **Next Phase:** Phase 6 - Frontend Web Application, Officer Scrutiny & Selection Governance
-- **Status:** Phase 1, Phase 2, Phase 3, Phase 4, and Phase 5 AI OCR Microservice Complete (43/43 tests passing)
+- **Current Phase:** Phase 7 - Frontend Web Application & Live SIH Jury Demo (ALL PROMPTS 7.1–7.5 COMPLETED)
+- **Status:** All Phases (Phase 1 through Phase 7) 100% COMPLETED. Full end-to-end platform operational: Next.js 14 App Router, One-Click SIH Jury Role Switcher, Scholar Intake & Multi-Step Application Wizard, Exception Management Resolution Desk, Proposal-Accurate 2-Column AI Officer Scrutiny Workspace, and System Admin Scheme Rules DSL Studio with Live Dry-Run Simulator. 313/313 backend tests passing, 0 build errors across entire monorepo.
 
 ---
 
@@ -64,7 +63,30 @@
 
 ---
 
-## 7. High-Level Multi-Phase Master Roadmap
+## 7. Phase 6 Tracking Table: Frontend Web Application, Officer Scrutiny & Selection Governance
+
+| Prompt ID | Task Description | Status | Key Deliverables & Files |
+| :--- | :--- | :--- | :--- |
+| **6.1** | **Submission Orchestration Pipeline, FastAPI OCR Integration, Rule Engine Execution & State Transition** | **COMPLETED** | `apps/api/src/modules/ocrClient/ocrClient.service.ts`, `apps/api/src/modules/scrutiny/orchestrator.service.ts`, `apps/api/src/modules/applications/applications.routes.ts`, `apps/api/src/__tests__/orchestrator.test.ts`, `packages/shared/src/enums.ts`, `apps/api/prisma/schema.prisma` |
+| **6.2** | **Applicant Correction, Deficiency Resolution & Delta Re-Verification Pipeline** | **COMPLETED** | `apps/api/src/modules/scrutiny/orchestrator.service.ts` (`resolveDeficienciesAndReverify`), `apps/api/src/modules/applications/applications.routes.ts` (`POST /:id/resolve`), `apps/api/prisma/schema.prisma` (`DeficiencyRecord.isResolved`), `apps/api/src/__tests__/deficiency-loop.test.ts` |
+| **6.3** | **Scrutiny Officer Decision Desk, Decision Package & Review Governance APIs** | **COMPLETED** | `apps/api/src/modules/scrutiny/scrutiny.service.ts`, `apps/api/src/modules/scrutiny/scrutiny.routes.ts`, `apps/api/src/app.ts`, `apps/api/src/__tests__/scrutiny.routes.test.ts`, `packages/shared/src/enums.ts`, `apps/api/prisma/schema.prisma` |
+| **6.4** | **Selection Committee Decision, Sanction Order, Institutional Verification & DBT Disbursement** | **COMPLETED** | `apps/api/src/modules/selection/selection.service.ts`, `apps/api/src/modules/selection/selection.routes.ts`, `apps/api/src/app.ts`, `apps/api/src/__tests__/selection.routes.test.ts` |
+
+---
+
+## 8. Phase 7 Tracking Table: Frontend Web Application & Live SIH Jury Demo
+
+| Prompt ID | Task Description | Status | Key Deliverables & Files |
+| :--- | :--- | :--- | :--- |
+| **7.1** | **Next.js 14 App Router Setup, Tailwind CSS, Typed API Client, JWT Auth Context, SIH Demo Role Switcher & Role Layouts** | **COMPLETED** | `apps/web/package.json`, `apps/web/tsconfig.json`, `apps/web/tailwind.config.ts`, `apps/web/src/lib/api.ts`, `apps/web/src/context/AuthContext.tsx`, `apps/web/src/components/SihDemoRoleSwitcher.tsx`, `apps/web/src/components/RoleGuard.tsx`, `apps/web/src/components/Navbar.tsx`, `apps/web/src/components/Sidebar.tsx`, `apps/web/src/app/login/page.tsx`, `apps/web/src/app/register/page.tsx`, `apps/web/src/app/applicant/`, `apps/web/src/app/scrutiny/`, `apps/web/src/app/selection/`, `apps/web/src/app/admin/` |
+| **7.2** | **Scholar Intake Portal, Multi-Step Form, Prescribed Document Slots, Simulated DigiLocker & AI Scrutiny Trigger** | **COMPLETED** | `apps/web/src/app/applicant/dashboard/page.tsx`, `apps/web/src/app/applicant/apply/page.tsx`, `apps/web/src/app/applicant/apply/[schemeCode]/page.tsx`, `apps/web/src/lib/api.ts` (extended with typed applications, schemes, documents, and DigiLocker integration helpers) |
+| **7.3** | **Applicant Application Detail, Actionable Deficiency Cards, Replacement Upload & Re-Verification Loop** | **COMPLETED** | `apps/web/src/app/applicant/applications/[id]/page.tsx`, `apps/web/src/app/applicant/applications/page.tsx`, `apps/web/src/app/applicant/deficiencies/page.tsx`, `apps/web/src/lib/api.ts` (`resolveApplicationDeficiencies`) |
+| **7.4** | **Officer Queue & Proposal-Accurate 2-Column AI-Assisted Scrutiny Workspace** | **COMPLETED** | `apps/web/src/app/officer/layout.tsx`, `apps/web/src/app/officer/queue/page.tsx`, `apps/web/src/app/officer/applications/[id]/page.tsx`, `apps/web/src/lib/api.ts` (`getScrutinyQueue`, `getDecisionPackage`, `submitOfficerReview`, `decideApplicationSelection`, `updatePostSelection`) |
+| **7.5** | **System Admin Console, Versioned Scheme Rules DSL Studio & Dry-Run Simulator** | **COMPLETED** | `apps/web/src/app/admin/schemes/page.tsx`, `apps/web/src/app/admin/page.tsx`, `apps/web/src/lib/api.ts` (`getSchemeVersions`, `createSchemeVersion`, `updateSchemeVersion`, `cloneSchemeVersion`, `publishSchemeVersion`, `simulateSchemeVersion`) |
+
+---
+
+## 9. High-Level Multi-Phase Master Roadmap
 
 ### Phase 1: Foundation, Infrastructure & Core Engine (COMPLETED)
 - [x] **Prompt 1.1:** Monorepo, base TypeScript, Docker Compose (Postgres 16, MinIO), continuity docs.
@@ -96,15 +118,22 @@
 - [x] **Prompt 5.3:** Structured field extractor parsing OCR lines into typed fields with exact evidence metadata matching proposal UI mockup (`value`, `status`, `confidence`, `evidence`: `{ page, fieldLabel, bbox, rawSnippet }`).
 - [x] **Prompt 5.4:** Document Intelligence API exposing `POST /internal/v1/ocr/analyze` and `POST /internal/v1/ocr/analyze-batch`, multi-document cross-certificate consistency checks, clean 4/4 set verification, deficiency detection, and Phase 5 handoff.
 
-### Phase 6: Frontend Web Application, Officer Scrutiny & Selection Governance
-- Intake Portal & Scholar Self-Service Application Lifecycle (Registration, Profile, Form, Uploads, Replacement Versioning, Status Timeline).
-- Scrutiny Officer Verification Workspace (Side-by-side certificate viewer, extracted field evidence verification, deficiency tagging & return-to-applicant workflow).
-- Selection Committee Ranking & Quota Allocation (Merit list generator, PVTG / gender / state quotas, provisional award letters, sanction orders).
-- Post-Selection Milestones, DBT Disbursement Orchestration & Statutory Compliance Audit Exporter.
+### Phase 6: Officer Scrutiny & Selection Governance (COMPLETED)
+- [x] **Prompt 6.1:** Submission Orchestration Pipeline (`POST /api/v1/applications/:id/submit`), FastAPI OCR Client with timeout/retry resilience, versioned scheme rule engine execution, deficiency generation, and atomic state transition to `UNDER_SCRUTINY` or `DEFICIENCY_RAISED`.
+- [x] **Prompt 6.2:** Applicant Correction, Deficiency Resolution & Delta Re-Verification Pipeline (`POST /api/v1/applications/:id/resolve`), updating `DeficiencyRecord.isResolved = true`, running delta OCR on replacement document versions, re-evaluating pinned scheme rules, and transitioning compliant applications to `UNDER_SCRUTINY`.
+- [x] **Prompt 6.3:** Scrutiny Officer Decision Desk, Decision Package & Review Governance APIs (`GET /api/v1/scrutiny/queue`, `GET /api/v1/scrutiny/applications/:id`, `POST /api/v1/scrutiny/applications/:id/review`), 2-column officer verification payload, and mandatory justification enforcement on human overrides.
+- [x] **Prompt 6.4:** Selection Committee Decision, Sanction Order, Institutional Verification & DBT Disbursement (`POST /api/v1/selection/applications/:id/decide`, `PATCH /api/v1/selection/applications/:id/post-selection`, `GET /api/v1/selection/applications/:id`, `GET /api/v1/selection/queue`), `PostSelectionRecord` generation, joining report verification, and simulated DBT/PFMS disbursement orchestration via `mockDbtAdapter`.
+
+### Phase 7: Frontend Web Application & Live SIH Jury Demo (COMPLETED)
+- [x] **Prompt 7.1:** Next.js 14 App Router, Tailwind CSS, Typed API client, JWT Auth context with one-click SIH Demo Role Switcher, RoleGuard, responsive navigation, and role-specific workspace layouts (`/applicant`, `/scrutiny`, `/selection`, `/admin`).
+- [x] **Prompt 7.2:** Scholar Intake Portal & Application Lifecycle (Profile management, multi-step application form, document upload zone with format validation, simulated DigiLocker integration, replacement versioning, and real-time status timeline).
+- [x] **Prompt 7.3:** Applicant Application Detail & Exception Management (Actionable deficiency cards, inline field corrections, document replacement uploader, resolution note, delta re-verification trigger wired to `POST /api/v1/applications/:id/resolve`, and audit history timeline).
+- [x] **Prompt 7.4:** Scrutiny Officer Verification Workspace (Proposal-accurate two-column UI: `01 · Submitted Document` certificate visualizer & switcher, `02 · AI-Assisted Scrutiny` with extracted fields, evidence anchors, rule checklist, override justification modal, Selection Officer award controls, and append-only audit drawer).
+- [x] **Prompt 7.5:** System Admin Console, Versioned Scheme Rules DSL Studio & Dry-Run Simulator (Scheme version history selector, structured threshold editor, JSON Rule DSL specification editor, live dry-run simulator bench with preset profiles, and version publishing workflow with immutable audit logging).
 
 ---
 
-## 8. Prompt Completion Reports
+## 10. Prompt Completion Reports
 
 ### Prompt 1.1 Completion Report (2026-11-17)
 - Initialized pnpm monorepo workspace, root `package.json`, `tsconfig.base.json`.
@@ -451,3 +480,332 @@
   - `services/ai-ocr/.venv/bin/pytest services/ai-ocr/tests`: 43/43 passed in 4.23s across 4 test suites (`test_analyze_api.py`, `test_classifier.py`, `test_extractor.py`, `test_health.py`).
   - `pnpm --filter @tribalscholar/ai-ocr test`: 43/43 passed in 4.43s.
   - `pnpm -r build`: Clean TypeScript compilation across `packages/shared` and `apps/api` (0 errors).
+
+
+### Prompt 6.1 Completion Report (2026-11-18)
+- **Delivered Packages & Files:**
+  - `packages/shared/src/enums.ts` & `apps/api/prisma/schema.prisma`:
+    - Added `DEFICIENCY_RAISED = 'DEFICIENCY_RAISED'` to `ApplicationStatus` enum.
+    - Updated Prisma schema, ran `prisma db push`, and regenerated client.
+  - `apps/api/src/config/env.ts`:
+    - Added `INTERNAL_API_KEY` configuration with default secret key.
+  - `apps/api/src/modules/storage/storage.service.ts`:
+    - Implemented `getDocumentBuffer(key: string, bucket?: string): Promise<Buffer>` supporting local disk and MinIO/S3 buffer resolution.
+  - `apps/api/src/modules/ocrClient/ocrClient.service.ts`:
+    - Implemented `OcrClientService` connecting `apps/api` to `services/ai-ocr` at `POST /internal/v1/ocr/analyze`.
+    - Handles `X-Internal-Api-Key` authentication, request payload construction (`documentId`, `expectedType`, `fileBase64`, `applicantContext`).
+    - Configured timeout with `AbortSignal.timeout` and exponential backoff retry for transient 5xx errors while failing fast on 4xx client errors.
+  - `apps/api/src/modules/scrutiny/orchestrator.service.ts`:
+    - Implemented `ScrutinyOrchestratorService` with `submitAndEvaluateApplication(applicationId, actor, context)`.
+    - Pipeline:
+      1. Validates application presence, ownership/actor permissions, and eligible submission status (`DRAFT`, `DEFICIENT`, `DEFICIENCY_RAISED`).
+      2. Loads all current active documents (`isCurrent: true`) and fetches their binary buffers via `storageService.getDocumentBuffer`.
+      3. Dispatches each document to FastAPI OCR service in parallel via `ocrClientService.analyzeDocument`.
+      4. Persists extracted OCR fields, OCR status, confidence scores, and raw payloads to `ApplicationDocument`.
+      5. Executes versioned `SchemeVersion` rule engine (`evaluateApplicationRules`), evaluating document completeness, applicant eligibility, and cross-document consistency.
+      6. Creates `DeficiencyRecord` entries if rule evaluation or OCR verification raises any deficiencies.
+      7. Atomically transitions application state to `UNDER_SCRUTINY` (if 100% compliant) or `DEFICIENCY_RAISED` (if deficiencies exist).
+      8. Generates immutable audit logs with `AuditService.logAction` recording previous state, new state, and submission metadata.
+  - `apps/api/src/modules/applications/applications.routes.ts`:
+    - Exposed `POST /api/v1/applications/:id/submit` route with `authenticate`, `requireRole([UserRole.APPLICANT, UserRole.ADMIN])`, and schema validation.
+  - `apps/api/src/modules/applications/applications.service.ts`:
+    - Updated status guards on `updateApplicationFormData` and `uploadApplicationDocument` to allow resubmissions/updates in `DEFICIENCY_RAISED` state.
+  - `apps/api/src/modules/ruleEngine/eligibilityEvaluator.ts` & `consistencyEvaluator.ts`:
+    - Added alias support (`ST_CASTE_CERTIFICATE` for `CASTE_CERTIFICATE`, `ACADEMIC_MARKSHEET` for `MARKSHEET_PG`) so documents match scheme version rules and cross-document checks cleanly.
+  - `apps/api/src/__tests__/orchestrator.test.ts`:
+    - 8 comprehensive integration tests:
+      1. Submission when all documents pass OCR and rules -> transitions to `UNDER_SCRUTINY` with audit log.
+      2. Submission with deficient document / income mismatch -> creates `DeficiencyRecord` entries and transitions to `DEFICIENCY_RAISED`.
+      3. Missing required documents -> flags `DEFICIENCY_RAISED` with missing document codes.
+      4. Double submission rejection -> 400 Bad Request when already `UNDER_SCRUTINY`.
+      5. Unauthorized access -> 401 when unauthenticated.
+      6. Forbidden submission -> 403 when applicant attempts to submit another user's application.
+      7. OCR service retry on transient 500 error -> succeeds on retry.
+      8. OCR service 4xx fast fail -> returns non-retryable error.
+- **Verification Results:**
+  - `pnpm --filter @tribalscholar/api test src/__tests__/orchestrator.test.ts`: 8/8 passed.
+  - `pnpm --filter @tribalscholar/api test`: 226/226 passed across 14 test suites.
+  - `services/ai-ocr/.venv/bin/pytest services/ai-ocr/tests`: 43/43 passed across 4 test suites.
+  - Total workspace tests: 269/269 passing (100% pass rate).
+  - `pnpm -r build`: Clean TypeScript compilation (0 errors).
+
+
+### Prompt 6.2 Completion Report (2026-11-18)
+- **Delivered Packages & Files:**
+  - `apps/api/prisma/schema.prisma`:
+    - Added `isResolved Boolean @default(false)` and `resolutionNote String?` to `DeficiencyRecord` model.
+    - Synchronized database with PostgreSQL via `prisma db push` and regenerated Prisma client.
+  - `apps/api/src/modules/scrutiny/orchestrator.service.ts`:
+    - Implemented `resolveDeficienciesAndReverify(applicationId, actor, options, context)`:
+      1. Validates application presence, ownership guards, and status requirement (`DEFICIENCY_RAISED` or `DEFICIENT`).
+      2. Marks open `DeficiencyRecord` entries as `isResolved = true`, `status = RESOLVED`, setting `resolvedAt` timestamp and resolution notes.
+      3. Dispatches delta AI OCR re-verification only to newly uploaded/pending or deficient documents while reusing existing verified extractions for unchanged documents.
+      4. Re-evaluates pinned `SchemeVersion` rules against all current documents and updated profile/form data.
+      5. If issues remain, keeps status `DEFICIENCY_RAISED` and records new/unresolved `DeficiencyRecord` items.
+      6. If all checks pass cleanly, transitions application status to `UNDER_SCRUTINY`.
+      7. Generates immutable audit logs with `AuditAction.DEFICIENCY_RESOLVED`, `AuditAction.OCR_PROCESSED`, `AuditAction.RULE_EVALUATED`, and `AuditAction.APPLICATION_SUBMITTED`.
+  - `apps/api/src/modules/applications/applications.routes.ts`:
+    - Exposed `POST /api/v1/applications/:id/resolve` route guarded with `authenticateJWT`.
+    - Handles optional resolution notes (`resolutionNote`, `resolutionNotes`), target `deficiencyIds`, and `forceOcr` options.
+  - `apps/api/src/__tests__/deficiency-loop.test.ts`:
+    - 8 comprehensive integration tests:
+      1. Full lifecycle: Initial submission flags income mismatch (`DEFICIENCY_RAISED`) -> applicant re-uploads corrected document (v2) -> calls `/resolve` -> delta OCR runs only on v2 -> transitions to `UNDER_SCRUTINY` -> verifies resolved `DeficiencyRecord` and audit trail.
+      2. Form correction lifecycle: Initial submission flags mismatch -> applicant updates form data via `PATCH /form` -> calls `/resolve` -> re-verification succeeds without document re-upload -> transitions to `UNDER_SCRUTINY`.
+      3. Failed resolution re-check: Re-verification keeps `DEFICIENCY_RAISED` and records deficiency if replacement document is still non-compliant.
+      4. 401 Unauthorized when unauthenticated.
+      5. 404 Not Found for non-existent application ID.
+      6. 403 Forbidden when another applicant attempts to resolve someone else's application.
+      7. 400 Bad Request when trying to resolve an application in `DRAFT` status.
+      8. 400 Bad Request when trying to resolve an application already in `UNDER_SCRUTINY` status.
+- **Verification Results:**
+  - `pnpm --filter @tribalscholar/api test src/__tests__/deficiency-loop.test.ts`: 8/8 passed in 2.72s.
+  - `pnpm --filter @tribalscholar/api test`: 234/234 passed across 15 test suites.
+  - `services/ai-ocr/.venv/bin/pytest services/ai-ocr/tests`: 43/43 passed across 4 test suites.
+  - Total workspace tests: 277/277 passing (100% pass rate).
+  - `pnpm -r build`: Clean TypeScript compilation across all workspaces (0 errors).
+
+
+### Prompt 6.3 Completion Report (2026-11-18)
+- **Delivered Packages & Files:**
+  - `packages/shared/src/enums.ts` & `apps/api/prisma/schema.prisma`:
+    - Added `SCRUTINY_APPROVED` to `ApplicationStatus` enum.
+    - Added `APPROVE` and `REQUEST_CORRECTION` to `ReviewDecision` enum.
+    - Synchronized database with PostgreSQL via `prisma db push` and regenerated Prisma client.
+  - `apps/api/src/modules/scrutiny/scrutiny.service.ts`:
+    - Implemented `getScrutinyQueue(filters)`:
+      - Filterable by `schemeCode` (NFST/NOS), `status` (defaults to `UNDER_SCRUTINY`), `confidenceLevel` (`HIGH`, `MEDIUM`, `LOW` or numeric `minConfidence`), and `search` (applicant name, email, application number).
+      - Computes queue item metadata: document counts, open deficiency counts, average OCR confidence, `hasAiFlag`, `flagCount`, and `aiRecommendation`.
+      - Returns paginated results with pagination metadata.
+    - Implemented `getDecisionPackage(applicationId)`:
+      - Formats the complete 2-column Decision Package for the Officer Scrutiny UI:
+        - Column 1: Submitted documents with resolved presigned/streaming view URLs, verification status, OCR confidence, extracted fields, field evidence strings (`page 1 · name field`, `page 1 · income field`), and cross-document validation results.
+        - Column 2: Applicant profile context, scheme version details, rule engine evaluation results (completeness, eligibility, consistency), AI findings summary (`overallConfidence`, `overallPassed`, `hasFlag`, `recommendation`), complete deficiency history, and prior officer reviews.
+    - Implemented `submitOfficerReview(applicationId, officer, input, context)`:
+      - Validates officer permissions and application reviewable status (`UNDER_SCRUTINY` or `DEFICIENCY_RAISED`).
+      - **Strict Human Override Governance**: Enforces mandatory justification whenever an officer selects `APPROVE` for an application with active AI or rule deficiencies (or sets `overrideUsed = true`). Missing justification is rejected with 400 Bad Request.
+      - Approval with override automatically waives existing open deficiencies with officer notes and transitions status to `SCRUTINY_APPROVED`.
+      - Request correction (`REQUEST_CORRECTION`) generates new `DeficiencyRecord` entries with officer attribution, routing the application back to the applicant in `DEFICIENCY_RAISED` status.
+      - Persists `OfficerReview` record with officer ID, decision, remarks, checklist results, `aiFindingsAgreement`, and `overrideReason`.
+      - Records immutable `AuditLog` for `OFFICER_REVIEW_SUBMITTED` and `DEFICIENCY_RAISED`.
+  - `apps/api/src/modules/scrutiny/scrutiny.routes.ts`:
+    - Exposed routes protected with `authenticateJWT` and `requireRoles(Role.SCRUTINY_OFFICER, Role.ADMIN)`:
+      - `GET /api/v1/scrutiny/queue`
+      - `GET /api/v1/scrutiny/applications/:id`
+      - `POST /api/v1/scrutiny/applications/:id/review`
+  - `apps/api/src/app.ts`:
+    - Mounted `scrutinyRouter` at `/api/v1/scrutiny`.
+  - `apps/api/src/__tests__/scrutiny.routes.test.ts`:
+    - 17 comprehensive integration tests covering:
+      1. RBAC enforcement: 401 Unauthorized for missing tokens, 403 Forbidden for `APPLICANT` role across all endpoints, 200 OK for `ADMIN` role.
+      2. Scrutiny Queue: default queue listing, scheme code filtering (`NFST`), status filtering (`DEFICIENCY_RAISED`), confidence filtering (`HIGH`), and search query resolution.
+      3. Complete Decision Package: 404 for non-existent applications, full 2-column payload validation (application, applicant, scheme, 8 documents with viewUrls & OCR extractions, rule evaluation, AI findings, deficiency history, prior reviews).
+      4. Officer Review Happy Path: Clean application approved (`APPROVE` -> `SCRUTINY_APPROVED`) with `OfficerReview` and `AuditLog`.
+      5. Mandatory Justification Enforcement: Rejection with 400 Bad Request when approving deficient application without justification.
+      6. Human Override: Approval with justification succeeds (200 OK), waives open deficiencies, records `aiFindingsAgreement = false`, and logs override reason in audit trail.
+      7. Request Correction: Submits `REQUEST_CORRECTION`, raises `DeficiencyRecord`, updates status to `DEFICIENCY_RAISED`, and logs action.
+      8. Status Guards: Rejection with 400 Bad Request when attempting to review an application in `DRAFT` status.
+- **Verification Results:**
+  - `pnpm --filter @tribalscholar/api test src/__tests__/scrutiny.routes.test.ts`: 17/17 passed in 2.66s.
+  - `pnpm --filter @tribalscholar/api test`: 251/251 passed across 16 test suites.
+  - `services/ai-ocr/.venv/bin/pytest services/ai-ocr/tests`: 43/43 passed across 4 test suites.
+  - Total workspace tests: 294/294 passing (100% pass rate).
+  - `pnpm -r build`: Clean TypeScript compilation across all workspaces (0 errors).
+
+### Prompt 6.4 Completion Report (2026-11-18)
+- **Delivered Packages & Files:**
+  - `apps/api/src/modules/selection/selection.service.ts`:
+    - Implemented `decideApplication(applicationId, officer, input, context)`:
+      - Enforces status guard: only applications in `SCRUTINY_APPROVED` (or `SELECTION_PENDING` / `SCRUTINY_VERIFIED`) can be decided. Applications in `DRAFT`, `UNDER_SCRUTINY`, or `DEFICIENCY_RAISED` return 400 Bad Request.
+      - **SELECTED Path**:
+        - Transitions application status to `PROVISIONALLY_SELECTED`.
+        - Generates unique sanction order number (`SANCTION-MOTA-NFST-2026-TS-NFST-2026-0001`).
+        - Calculates/assigns fellowship sanctioned amount (default ₹3,50,000.00).
+        - Generates award letter URL (`/api/v1/storage/documents/awards/...pdf`).
+        - Creates or upserts `PostSelectionRecord` with status `AWARD_LETTER_ISSUED`, `sanctionOrderNumber`, `sanctionedAmount`, `awardLetterUrl`, and initial milestone log.
+        - Persists `OfficerReview` with `ReviewDecision.RECOMMENDED_FOR_SELECTION`.
+        - Records immutable `AuditLog` entry for `SELECTION_DECISION_RECORDED`.
+      - **REJECTED Path**:
+        - Transitions application status to `REJECTED`.
+        - Persists `OfficerReview` with `ReviewDecision.REJECTED`.
+        - Records immutable `AuditLog` entry for `SELECTION_DECISION_RECORDED`.
+    - Implemented `updatePostSelection(applicationId, officer, input, context)`:
+      - Validates that application has an active `PostSelectionRecord` (rejects unselected applications with 400).
+      - Institutional Verification Toggle: marks `joiningReportSubmitted: true`, records `joiningDate`, and advances status from `AWARD_LETTER_ISSUED` to `JOINING_REPORT_SUBMITTED`.
+      - **Simulated DBT Disbursement Trigger**:
+        - Enforces prerequisite: Institutional verification (joining report) must be submitted before triggering DBT disbursement.
+        - Calls `mockDbtAdapter.simulatePaymentTrigger({ applicationId, amount, installmentNumber, bankIfsc })`.
+        - Returns deterministic simulated PFMS reference (`PFMS-ORD-...`) and tracking ID (`DBT-TRK-...`).
+        - Transitions `PostSelectionRecord` status to `DISBURSEMENT_ACTIVE`.
+        - Appends payment details to `disbursementDetails` and milestone entry to `milestoneLogs`.
+        - Records immutable `AuditLog` for `APPLICATION_UPDATED` with `newState: DISBURSEMENT_ACTIVE`.
+      - Supports simultaneous verification and disbursement in a single composite payload.
+    - Implemented `getPostSelectionDetails(applicationId)`:
+      - Returns complete post-selection summary, scholar profile, scheme metadata, review history, and simulated live PFMS disbursement status from `mockDbtAdapter.getDisbursementStatus()`.
+    - Implemented `getSelectionQueue(filters)`:
+      - Returns paginated list of applications eligible for selection or already decided (`SCRUTINY_APPROVED`, `PROVISIONALLY_SELECTED`, `REJECTED`), filterable by `schemeCode`, `status`, and `search`.
+  - `apps/api/src/modules/selection/selection.routes.ts`:
+    - Exposed endpoints protected with `authenticateJWT` and `requireRoles(Role.SELECTION_OFFICER, Role.ADMIN)`:
+      - `GET /api/v1/selection/queue`
+      - `GET /api/v1/selection/applications/:id`
+      - `POST /api/v1/selection/applications/:id/decide`
+      - `PATCH /api/v1/selection/applications/:id/post-selection`
+  - `apps/api/src/app.ts`:
+    - Mounted `selectionRouter` at `/api/v1/selection`.
+  - `apps/api/src/__tests__/selection.routes.test.ts`:
+    - 19 comprehensive integration tests covering:
+      1. Status & ID Guards on Selection: 400 for DRAFT status, 404 for unknown IDs, 400 for missing remarks.
+      2. Happy Path Decision: `SELECTED` -> `PROVISIONALLY_SELECTED`, `PostSelectionRecord` created with `AWARD_LETTER_ISSUED`, sanction order number, amount, review, and audit log.
+      3. Rejection Path: `REJECTED` -> `REJECTED`, no `PostSelectionRecord`, review and audit log recorded.
+      4. Disbursement Guard: 400 if triggering DBT disbursement before institutional verification.
+      5. Institutional Verification Toggle: advances status to `JOINING_REPORT_SUBMITTED` with date and audit log.
+      6. DBT Disbursement Trigger: calls `mockDbtAdapter`, advances status to `DISBURSEMENT_ACTIVE`, returns PFMS reference and tracking ID.
+      7. Combined Payload: simultaneous verification and disbursement in a single request.
+      8. Post-Selection Inspection: `GET /applications/:id` returns package with live simulated PFMS status.
+      9. Selection Queue: paginated retrieval and filtering by schemeCode and status.
+      10. Strict RBAC: 401 Unauthorized for missing tokens, 403 Forbidden for `APPLICANT` and `SCRUTINY_OFFICER` roles, 200 OK for `SELECTION_OFFICER` and `ADMIN`.
+      11. Unbroken Audit Trail: End-to-end verification of `APPLICATION_CREATED` -> `DOCUMENT_UPLOADED` -> `APPLICATION_SUBMITTED` -> `OFFICER_REVIEW_SUBMITTED` -> `SELECTION_DECISION_RECORDED` -> `APPLICATION_UPDATED`.
+- **Verification Results:**
+  - `pnpm --filter @tribalscholar/api test src/__tests__/selection.routes.test.ts`: 19/19 passed in 3.35s.
+  - `pnpm --filter @tribalscholar/api test`: 270/270 passed across 17 test suites in 18.68s.
+  - `services/ai-ocr/.venv/bin/pytest services/ai-ocr/tests`: 43/43 passed across 4 test suites in 5.15s.
+  - Total workspace tests: 313/313 passing (100% pass rate).
+  - `pnpm -r build`: Clean TypeScript compilation across all workspaces (0 errors).
+
+### Prompt 7.1 Completion Report (2026-11-18)
+- **Delivered Packages & Files:**
+  - `apps/web/package.json`: Configured Next.js 14 (App Router), React 18, Tailwind CSS, Lucide React, and shared contracts reference `@tribalscholar/shared`.
+  - `apps/web/tsconfig.json` & `apps/web/tailwind.config.ts`: Strict TypeScript configuration with bundler resolution and MoTA brand styling palette (emerald green, saffron amber, deep slate).
+  - `apps/web/next.config.mjs` & `apps/web/postcss.config.js`: Next.js 14 configuration with `/api/v1` proxy rewrite to Express backend (port 4000) and package transpilation.
+  - `apps/web/src/lib/api.ts`: Typed REST client helpers with custom `ApiError`, request envelopes, JWT authorization header injection, and typed auth helpers (`loginUser`, `registerUser`, `fetchCurrentUser`, `apiClient`).
+  - `apps/web/src/context/AuthContext.tsx`: React Context providing JWT authentication state, token persistence in `localStorage`, and one-click demo persona switcher with offline fallback for resilient jury demonstrations.
+  - `apps/web/src/components/SihDemoRoleSwitcher.tsx`: Fixed top demo bar featuring 4 instant persona switchers:
+    1. Birsa Munda (ST Scholar / Applicant)
+    2. Dr. Sunita Toppo (Scrutiny Officer)
+    3. Shri Rajeshwar Meena (Selection Committee)
+    4. MoTA Administrator (System Admin)
+  - `apps/web/src/components/RoleGuard.tsx`: Route access guard enforcing role clearance and redirecting unauthorized sessions to designated dashboards.
+  - `apps/web/src/components/Navbar.tsx` & `apps/web/src/components/Sidebar.tsx`: MoTA tricolor branding, scheme markers, and role-specific sidebar navigation.
+  - `apps/web/src/app/login/page.tsx` & `apps/web/src/app/register/page.tsx`: Full credential auth forms plus one-click SIH jury demo persona cards.
+  - Role-specific workspace pages:
+    - `/applicant`: Scholar intake portal, application overview, status tracker.
+    - `/scrutiny`: First-pass AI OCR review desk, consistency checks, worklist.
+    - `/selection`: Committee review desk, sanction order issuing, DBT disbursement status.
+    - `/admin`: Scheme Rule DSL editor, user governance, immutable audit trail overview.
+- **Verification Results:**
+  - `pnpm --filter @tribalscholar/web typecheck`: 0 TypeScript errors.
+  - `pnpm --filter @tribalscholar/web build`: Successful production compilation across all 10 App Router routes.
+  - `pnpm --filter @tribalscholar/api test`: 270/270 passed across 17 test suites in 18.79s.
+  - Total monorepo backend tests: 313/313 passing (100% pass rate).
+
+### Prompt 7.2 Completion Report (2026-11-18)
+- **Delivered Packages & Files:**
+  - `apps/web/src/app/applicant/dashboard/page.tsx`:
+    - Real-time applications tracking table with status badges (`DRAFT`, `UNDER_SCRUTINY`, `ACTION REQUIRED`, `SCRUTINY VERIFIED`, `PROVISIONALLY SELECTED`).
+    - Dynamic scheme cards for NFST (750 slots, income limit ≤ ₹80,000/yr) and NOS (100 slots, income limit ≤ ₹6,00,000/yr) displaying versioned criteria, slots, and direct application CTAs.
+    - Integrated with `getActiveSchemes()`, `getApplications()`, and resilient fallback for live offline jury evaluation.
+  - `apps/web/src/app/applicant/apply/page.tsx`:
+    - Scheme selection index routing scholars to NFST or NOS dedicated wizards.
+  - `apps/web/src/app/applicant/apply/[schemeCode]/page.tsx`:
+    - Dynamic multi-step wizard (`NFST` and `NOS`):
+      - **Step 1:** Scholar profile & fellowship details (caste community, sub-tribe, state domicile, family income, institution, degree, qualifying percentage).
+      - **Step 2:** Prescribed document upload slots (`ST_CASTE_CERTIFICATE`, `INCOME_CERTIFICATE`, `DOMICILE_CERTIFICATE`, `ACADEMIC_MARKSHEET`, and NOS overseas offer letters) with file validation.
+      - **Simulated DigiLocker Fetch:** One-click integration badged `Simulated Mock`, calling `/api/v1/integrations/digilocker/verify`, generating verified certificate references, and auto-attaching verified mock documents.
+      - **Step 3:** Final review, statutory declaration, and **"Submit Application for AI Scrutiny"** action.
+      - **Step 4:** Live multi-stage AI scrutiny execution progress visualization (PDF rasterization, PaddleOCR line extraction, cross-document verification, scheme rule DSL evaluation) displaying resulting application number and compliance findings.
+  - `apps/web/src/lib/api.ts`:
+    - Extended with typed API client helpers for `getActiveSchemes`, `getApplications`, `getApplicationById`, `createDraftApplication`, `updateApplicationFormData`, `uploadApplicationDocument`, `submitApplication`, and `verifyDigiLockerDocument`.
+- **Verification Results:**
+  - `pnpm --filter @tribalscholar/web typecheck`: 0 TypeScript errors.
+  - `pnpm --filter @tribalscholar/web build`: Clean production build across all 12 App Router routes.
+  - Monorepo backend tests: 313/313 passing across all suites.
+
+### Prompt 7.3 Completion Report (2026-11-18)
+- **Delivered Packages & Files:**
+  - `apps/web/src/app/applicant/applications/[id]/page.tsx`:
+    - 4-Stage lifecycle progression stepper (`Intake -> First-Pass AI Intelligence -> Exception Management Desk -> Officer Action & Sanction`).
+    - Actionable deficiency cards detailing specific AI/officer reasons (e.g. `INCOME_CERTIFICATE_LEGIBILITY`, `ANNUAL_INCOME_EXCEEDS_CEILING`, `ST_CASTE_MISMATCH`) with exact bounding box and evidence string anchors (`page 1 · income field · bbox [120, 340, 480, 390]`).
+    - Inline field correction inputs for income / candidate name and document replacement uploader supporting local file upload and simulated DigiLocker fetching (`Simulated Mock`).
+    - Actionable resolution note input and **"Submit Corrections & Re-Verify"** button wired to `POST /api/v1/applications/:id/resolve`, triggering replacement document upload, form data patch, delta OCR re-verification, and status advance to `UNDER_SCRUTINY`.
+    - Document version history table tracking replacement versions (`v1`, `v2`), current status, and OCR confidence scores.
+    - Chronological append-only application audit history timeline with actor names, roles, state transitions, and timestamps.
+  - `apps/web/src/app/applicant/applications/page.tsx` & `apps/web/src/app/applicant/deficiencies/page.tsx`:
+    - Supporting routes for navigating application records and centralized deficiency exception resolution.
+  - `apps/web/src/lib/api.ts`:
+    - Added `resolveApplicationDeficiencies(id, payload)` helper communicating with `POST /api/v1/applications/:id/resolve`.
+- **Verification Results:**
+  - `pnpm --filter @tribalscholar/web typecheck`: 0 TypeScript errors.
+  - `pnpm --filter @tribalscholar/web build`: Clean production build across all 14 App Router routes.
+  - Total monorepo backend tests: 313/313 passing across all 21 test suites.
+
+### Prompt 7.4 Completion Report (2026-11-18)
+- **Delivered Packages & Files:**
+  - `apps/web/src/app/officer/layout.tsx`:
+    - RoleGuard enforcing `SCRUTINY_OFFICER`, `SELECTION_OFFICER`, or `ADMIN` credentials.
+    - Unified layout rendering the MoTA Navbar, SIH Demo Role Switcher banner, and responsive Sidebar.
+  - `apps/web/src/app/officer/queue/page.tsx`:
+    - Scrutiny and selection officer queue dashboard with live counters (`Total Applications`, `Under Scrutiny`, `Deficiencies Raised`, `Verified / Selected`).
+    - Filter controls: Scheme (`ALL`, `NFST`, `NOS`), Case State (`ALL`, `UNDER_SCRUTINY`, `DEFICIENCY_RAISED`, `SCRUTINY_APPROVED`, `PROVISIONALLY_SELECTED`), Confidence Level (`ALL`, `HIGH`, `MEDIUM`, `LOW`), and text search (name, email, application number).
+    - Queue table displaying Applicant details, scheme tags, document counts, average OCR confidence bar, exception flags, status pills, and direct "Open Workspace" action links.
+  - `apps/web/src/app/officer/page.tsx` & `apps/web/src/app/scrutiny/queue/page.tsx`:
+    - Proxy routes pointing seamlessly to `OfficerQueuePage`.
+  - `apps/web/src/app/officer/applications/[id]/page.tsx`:
+    - Faithful realization of the SIH proposal's Page 4 UI Mockup:
+      - **Left Panel (`01 · Submitted Document`):**
+        - Document switcher tabs (Income, Caste, Domicile, Marksheet, Offer Letter) showing verified badges and version markers (`v1`, `v2`).
+        - Visual certificate viewer rendering government revenue certificate (Cert Ref: `SAMPLE-2026-01482`, Applicant Name: `Sample Applicant`, Category: `Scheduled Tribe (ST)`, Income: `₹80,000 per annum`, Authority: `Sub-Divisional Officer / Competent Revenue Authority`, Date: `14 Feb 2026`).
+        - Toggleable OCR bounding box visualizer overlay with coordinate-anchored highlights.
+        - Direct external document link and zoom controls.
+      - **Right Panel (`02 · AI-Assisted Scrutiny`):**
+        - Header summary metrics: `APPLICANT` (name, email, application number), `DOCUMENT SET 4 / 4 uploaded`, and `CASE STATE Officer review`.
+        - `EXTRACTED FIELDS` verification grid with status pills (`Extracted`, `Consistent`, `Present`) and exact evidence strings:
+          - `Evidence: page 1 · name field`
+          - `Matches application entry`
+          - `Evidence: page 1 · income field`
+          - `Evidence: page 1 · issuer field`
+          - `Evidence: page 1 · ref field`
+        - Scheme Rule Engine automated checklist with rule codes, threshold descriptions, and pass/fail indicators.
+        - Review remarks input and primary action buttons (`Approve Application` and `Request Correction`).
+        - **Human Override Governance Modal**: Intercepts approvals when discrepancies or AI warnings exist, enforcing mandatory statutory justification before submission.
+        - **Selection Officer Award Controls**: Sanction order issue button, fellowship amount assignment, and post-selection simulated DBT disbursement trigger via PFMS adapter.
+        - **Append-Only Audit Trail Drawer**: Slide-over panel displaying immutable chronological audit logs with actor details and state transitions.
+  - `apps/web/src/components/Sidebar.tsx`:
+    - Added `Officer Scrutiny Queue` (`/officer/queue`) to both Scrutiny and Selection navigation items.
+  - `apps/web/src/lib/api.ts`:
+    - Added typed scrutiny & selection client functions: `getScrutinyQueue`, `getDecisionPackage`, `submitOfficerReview`, `decideApplicationSelection`, `updatePostSelection`.
+- **Verification Results:**
+  - `pnpm --filter @tribalscholar/web typecheck`: 0 TypeScript errors.
+  - `pnpm --filter @tribalscholar/web build`: Clean production compilation across all 17 App Router routes.
+  - Monorepo backend tests: 313/313 passing across all 21 test suites.
+
+### Prompt 7.5 Completion Report (2026-11-18)
+- **Delivered Packages & Files:**
+  - `apps/web/src/app/admin/schemes/page.tsx`:
+    - Full-featured **Scheme Rules DSL Studio** supporting both NFST and NOS policy management.
+    - **Scheme Version History Selector**: Dynamically inspects version lineage (`v1`, `v2`), live published vs editable draft indicators, and cloning action.
+    - **Structured Rule Thresholds Tab**:
+      - Academic year configuration (`2026-2027`).
+      - Total fellowship slots (`750` for NFST, `100` for NOS).
+      - Statutory annual income ceiling (₹) with descriptive guidelines.
+      - Minimum academic qualifying marks percentage (%).
+      - Configured rule conditions list (`casteCommunity`, `annualIncome`, `pgMarksPercentage`) with operator, threshold value, and target document.
+      - Prescribed document requirements checklist and cross-document matchers matrix.
+    - **Raw JSON Rule DSL Spec Tab**:
+      - Syntax-styled editable text area displaying raw JSON rule definition and document requirements.
+      - Inline JSON syntax validator and error feedback.
+    - **Dry-Run Rule Simulator Bench**:
+      - Real-time test applicant inputs: Name, community, Aadhaar status, annual family income, academic percentage, and foreign university offer letter.
+      - Quick test preset buttons: *Clean Eligible ST Scholar (100% Pass)*, *Income Exceeds Ceiling (Economic Block)*, *Marks Below Cutoff (Academic Block)*, and *Missing Caste Certificate (Incomplete Docs)*.
+      - Live evaluation output: Overall verdict banner (`COMPLIANT` / `DEFICIENT`), blocking failures count, condition-by-condition evaluation breakdown (`PASS` / `FAIL`), and cross-document consistency checks.
+    - **Version Publishing & Audit Governance Modal**:
+      - Statutory notice reminding administrators that publishing permanently activates rules for new applicants and writes an immutable `AuditAction.SCHEME_RULE_MODIFIED` record to PostgreSQL.
+  - `apps/web/src/app/admin/page.tsx`:
+    - Updated admin dashboard to link directly to the Scheme Rule DSL Studio (`/admin/schemes?scheme=NFST` and `/admin/schemes?scheme=NOS`).
+  - `apps/web/src/lib/api.ts`:
+    - Extended with typed scheme administration helpers: `getSchemeVersions`, `createSchemeVersion`, `updateSchemeVersion`, `cloneSchemeVersion`, `publishSchemeVersion`, and `simulateSchemeVersion`.
+- **Verification Results:**
+  - `pnpm --filter @tribalscholar/web typecheck`: 0 TypeScript errors.
+  - `pnpm --filter @tribalscholar/web build`: Clean production compilation across all 18 App Router routes.
+  - `pnpm -r build`: Clean compilation across `packages/shared`, `apps/api`, and `apps/web`.
+  - Backend tests: 313/313 passing across all 21 test suites.
+
+

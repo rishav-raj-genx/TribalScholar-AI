@@ -28,8 +28,10 @@ enum ApplicationStatus {
   SUBMITTED
   UNDER_SCRUTINY
   DEFICIENT
+  DEFICIENCY_RAISED
   RESUBMITTED
   SCRUTINY_VERIFIED
+  SCRUTINY_APPROVED
   SELECTION_PENDING
   PROVISIONALLY_SELECTED
   REJECTED
@@ -72,6 +74,8 @@ enum ReviewDecision {
   RECOMMENDED_FOR_SELECTION
   DEFICIENCY_FLAGGED
   REJECTED
+  APPROVE
+  REQUEST_CORRECTION
 }
 
 enum PostSelectionStatus {
@@ -255,10 +259,12 @@ model DeficiencyRecord {
   deficiencyCode        String
   description           String
   status                DeficiencyStatus   @default(OPEN)
+  isResolved            Boolean            @default(false)
   raisedByOfficerId     String
   raisedByOfficer       User               @relation("OfficerDeficiencies", fields: [raisedByOfficerId], references: [id], onDelete: Restrict)
   resolvedAt            DateTime?
   resolutionNotes       String?
+  resolutionNote        String?
   createdAt             DateTime           @default(now())
   updatedAt             DateTime           @updatedAt
 

@@ -33,6 +33,7 @@ const envSchema = z.object({
 
   // External Microservice URLs
   AI_OCR_URL: z.string().url().default('http://localhost:8000'),
+  INTERNAL_API_KEY: z.string().default('tribalscholar_internal_secret_key_2026'),
 });
 
 const parsed = envSchema.safeParse(process.env);

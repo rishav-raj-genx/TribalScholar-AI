@@ -582,6 +582,22 @@ export class StorageService {
   }
 
   /**
+   * Retrieves full document buffer by object key.
+   */
+  public async getDocumentBuffer(
+    key: string,
+    bucket?: string | undefined
+  ): Promise<Buffer> {
+    const stream = await this.getDocumentStream(key, bucket);
+    return new Promise<Buffer>((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      stream.on('data', (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
+      stream.on('error', (err) => reject(err));
+      stream.on('end', () => resolve(Buffer.concat(chunks)));
+    });
+  }
+
+  /**
    * Generates a presigned view URL for a document.
    */
   public async getPresignedViewUrl(

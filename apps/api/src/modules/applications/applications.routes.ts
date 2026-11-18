@@ -9,6 +9,7 @@ import {
   updateApplicationFormSchema,
 } from '@tribalscholar/shared';
 import { applicationsService } from './applications.service.js';
+import { scrutinyOrchestrator } from '../scrutiny/orchestrator.service.js';
 import { documentUpload } from '../storage/storage.service.js';
 import { authenticateJWT, requireRoles } from '../../middleware/auth.js';
 import { BadRequestError } from '../../middleware/errorHandler.js';
@@ -305,6 +306,105 @@ applicationsRouter.get(
           verificationStatus: document.verificationStatus,
           viewUrl,
         },
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+/**
+ * POST /api/v1/applications/:id/submit
+ * Submits an application for scrutiny orchestration:
+ * sends current documents to AI OCR service, records field evidence,
+ * evaluates versioned scheme rules, raises deficiencies if any check fails,
+ * and transitions status to either DEFICIENCY_RAISED or UNDER_SCRUTINY.
+ */
+applicationsRouter.post(
+  '/:id/submit',
+  authenticateJWT,
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        throw new BadRequestError('Application ID is required');
+      }
+
+      const context = getRequestContext(req);
+      const application = await scrutinyOrchestrator.submitAndEvaluateApplication(
+        id,
+        {
+          userId: req.user!.id,
+          role: req.user!.role,
+        },
+        context
+      );
+
+      res.status(200).json({
+        status: 'success',
+        message:
+          application.status === ApplicationStatus.DEFICIENCY_RAISED ||
+          application.status === ApplicationStatus.DEFICIENT
+            ? 'Application evaluated: Deficiencies detected and flagged'
+            : 'Application submitted successfully and moved to scrutiny queue',
+        data: application,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+/**
+ * POST /api/v1/applications/:id/resolve
+ * Resolves open deficiencies on an application, executes delta OCR re-verification
+ * on newly uploaded document versions, re-evaluates pinned scheme rules, and transitions
+ * application status to UNDER_SCRUTINY (or keeps DEFICIENCY_RAISED if issues remain).
+ */
+applicationsRouter.post(
+  '/:id/resolve',
+  authenticateJWT,
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      if (!id) {
+        throw new BadRequestError('Application ID is required');
+      }
+
+      const rawNote =
+        (typeof req.body?.resolutionNote === 'string' && req.body.resolutionNote.trim()) ||
+        (typeof req.body?.resolutionNotes === 'string' && req.body.resolutionNotes.trim()) ||
+        undefined;
+
+      const deficiencyIds = Array.isArray(req.body?.deficiencyIds)
+        ? (req.body.deficiencyIds as string[])
+        : typeof req.body?.deficiencyId === 'string'
+          ? [req.body.deficiencyId]
+          : undefined;
+
+      const context = getRequestContext(req);
+      const application = await scrutinyOrchestrator.resolveDeficienciesAndReverify(
+        id,
+        {
+          userId: req.user!.id,
+          role: req.user!.role,
+        },
+        {
+          resolutionNote: rawNote,
+          resolutionNotes: rawNote,
+          deficiencyIds,
+          forceOcr: Boolean(req.body?.forceOcr),
+        },
+        context
+      );
+
+      res.status(200).json({
+        status: 'success',
+        message:
+          application.status === ApplicationStatus.UNDER_SCRUTINY
+            ? 'Deficiencies resolved successfully; application re-verified and moved to scrutiny queue'
+            : 'Re-verification complete: Unresolved deficiencies remain',
+        data: application,
       });
     } catch (err) {
       next(err);

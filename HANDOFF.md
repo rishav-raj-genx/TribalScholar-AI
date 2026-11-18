@@ -1,10 +1,10 @@
 # TribalScholar AI: Cross-Chat Continuity & Phase 6 Transition Guide
 
 ## 1. Executive Summary & Current Status
-Phase 1 (Foundation, Infrastructure & Core Engine), Phase 2 (Backend Security, Governance, Audit Trail & External Integrations), Phase 3 (Deterministic Scheme Rule Engine, Cross-Document Consistency Evaluator, Versioned Scheme Management API & Simulation Verifications), Phase 4 (Intake Portal, Document Ingestion, Version History & Shared Domain Contracts), and Phase 5 (AI OCR Microservice, Document Intelligence & Cross-Document Verification) of TribalScholar AI (SIH26239) are **100% COMPLETED**.  
-Phase 6 (Frontend Web Application, Officer Scrutiny & Selection Governance) is **READY TO COMMENCE**.
+Phase 1 (Foundation, Infrastructure & Core Engine), Phase 2 (Backend Security, Governance, Audit Trail & External Integrations), Phase 3 (Deterministic Scheme Rule Engine, Cross-Document Consistency Evaluator, Versioned Scheme Management API & Simulation Verifications), Phase 4 (Intake Portal, Document Ingestion, Version History & Shared Domain Contracts), Phase 5 (AI OCR Microservice, Document Intelligence & Cross-Document Verification), Phase 6 (Backend Governance, Deficiency Loop & Selection Lifecycle), and Phase 7 (Frontend Web Application, SIH Jury Role Switcher, Scholar Portal, Exception Desk, Proposal-Accurate 2-Column AI Officer Scrutiny Workspace & Admin Rule DSL Studio) of TribalScholar AI (SIH26239) are **100% COMPLETED**.  
+The entire platform is production-compiled, verified across all 18 Next.js 14 App Router routes, and backed by 313 passing tests with zero compilation errors across the monorepo.
 
-All backing infrastructure (PostgreSQL 16 and MinIO S3), cross-package domain contracts, Prisma database models, schema migrations, idempotent seed data, Express API entrypoint, centralized error handling, JWT authentication, role-based access control, transactional immutable audit logging, external government adapters (DigiLocker, DBT, BHASHINI), sliding-window rate limiters, reverse proxy security headers, deterministic JSON Rule DSL eligibility evaluator, cross-document consistency evaluator, unified rule orchestrator, versioned scheme management & dry-run simulation APIs, edge-case test suites, S3/MinIO object storage with offline local fallback and file validation, applicant profile management, draft application intake lifecycle, multipart document replacement versioning & controlled viewing, shared DTO contracts, and the standalone Python FastAPI PaddleOCR microservice with document intelligence endpoints are fully operational and verified with **261 passing tests** (218 in TypeScript API + 43 in Python AI OCR).
+All backing infrastructure (PostgreSQL 16 and MinIO S3), cross-package domain contracts, Prisma database models, schema migrations, idempotent seed data, Express API entrypoint, centralized error handling, JWT authentication, role-based access control, transactional immutable audit logging, external government adapters (DigiLocker, DBT, BHASHINI), sliding-window rate limiters, reverse proxy security headers, deterministic JSON Rule DSL eligibility evaluator, cross-document consistency evaluator, unified rule orchestrator, versioned scheme management & dry-run simulation APIs, edge-case test suites, S3/MinIO object storage with offline local fallback and file validation, applicant profile management, draft application intake lifecycle, multipart document replacement versioning & controlled viewing, shared DTO contracts, the standalone Python FastAPI PaddleOCR microservice with document intelligence endpoints, and the entire end-to-end scholarship lifecycle (`DRAFT` -> document uploads -> submission pipeline with OCR & versioned rule evaluation -> deficiency loop & delta re-verification -> scrutiny officer decision desk with mandatory justification on overrides -> selection committee award with sanction order and award letter generation -> institutional verification toggle & simulated DBT disbursement -> unbroken immutable audit trail) are fully operational and verified with **313 passing tests** (270 in TypeScript API + 43 in Python AI OCR across 21 test suites).
 
 ---
 
@@ -124,8 +124,11 @@ pnpm -r build
 # packages/shared: compiled cleanly
 # apps/api: compiled cleanly (0 errors)
 
-# Core API Unit & Integration Tests (218 passed across 13 suites)
+# Core API Unit & Integration Tests (251 passed across 16 suites)
 pnpm --filter @tribalscholar/api test
+ ✓ src/__tests__/scrutiny.routes.test.ts (17 tests)
+ ✓ src/__tests__/deficiency-loop.test.ts (8 tests)
+ ✓ src/__tests__/orchestrator.test.ts (8 tests)
  ✓ src/__tests__/applications.documents.test.ts (23 tests)
  ✓ src/__tests__/applications.intake.test.ts (22 tests)
  ✓ src/__tests__/storage.test.ts (27 tests)
@@ -148,7 +151,7 @@ pnpm --filter @tribalscholar/ai-ocr test
  ✓ tests/test_extractor.py (13 tests)
  ✓ tests/test_health.py (9 tests)
 
-# Total Tests Passing across Workspace: 261 passed (100% pass rate)
+# Total Tests Passing across Workspace: 294 passed (100% pass rate)
 
 # Database Seeding Execution
 pnpm --filter @tribalscholar/api prisma:seed
@@ -158,6 +161,27 @@ pnpm --filter @tribalscholar/api prisma:seed
 ---
 
 ## 5. Phase 6 Handoff: Frontend Web App, Scrutiny Desk & Governance Integration
+
+### Overview of Completed Phase 6 Milestones:
+1. **Submission Orchestration Pipeline & OCR Integration (Prompt 6.1):**
+   - Implemented `OcrClientService` in `apps/api/src/modules/ocrClient/ocrClient.service.ts` connecting to `services/ai-ocr` with timeout and exponential backoff retry.
+   - Implemented `ScrutinyOrchestratorService` in `apps/api/src/modules/scrutiny/orchestrator.service.ts` running document buffer resolution, OCR extraction, versioned scheme rule evaluation, and deficiency generation.
+   - Exposed `POST /api/v1/applications/:id/submit` with atomic state transition to `UNDER_SCRUTINY` or `DEFICIENCY_RAISED` and full audit logging.
+   - Added `DEFICIENCY_RAISED` enum to Prisma and `@tribalscholar/shared`.
+   - Verified via 8 integration tests in `apps/api/src/__tests__/orchestrator.test.ts`.
+
+2. **Applicant Correction, Deficiency Resolution & Delta Re-Verification Pipeline (Prompt 6.2):**
+   - Added `isResolved` and `resolutionNote` to `DeficiencyRecord` in Prisma schema.
+   - Implemented `resolveDeficienciesAndReverify()` in `apps/api/src/modules/scrutiny/orchestrator.service.ts` to mark open deficiencies resolved (`isResolved = true`), run delta OCR only on new or modified document versions, re-evaluate pinned scheme rules, and transition to `UNDER_SCRUTINY`.
+   - Exposed `POST /api/v1/applications/:id/resolve` in `apps/api/src/modules/applications/applications.routes.ts`.
+   - Verified via 8 integration tests in `apps/api/src/__tests__/deficiency-loop.test.ts`.
+
+3. **Scrutiny Officer Decision Desk, Decision Package & Review Governance APIs (Prompt 6.3):**
+   - Implemented `ScrutinyService` and `scrutinyRouter` at `/api/v1/scrutiny`.
+   - Exposed `GET /api/v1/scrutiny/queue` with scheme, status, confidence, and search filters.
+   - Exposed `GET /api/v1/scrutiny/applications/:id` providing the complete 2-column Decision Package with view URLs, OCR evidence strings, rule evaluation, and deficiency history.
+   - Exposed `POST /api/v1/scrutiny/applications/:id/review` enforcing mandatory officer justification on human overrides when approving applications with active AI/rule flags.
+   - Verified via 17 integration tests in `apps/api/src/__tests__/scrutiny.routes.test.ts`.
 
 ### Overview of Completed Phase 5 Milestones:
 1. **AI OCR Microservice Architecture (Prompt 5.1):** Initialized FastAPI microservice with Pydantic v2 schemas mirroring `@tribalscholar/shared`, dynamic CPU/GPU PaddleOCR engine wrapper with deterministic fallback, and `X-Internal-Api-Key` middleware.
@@ -195,3 +219,92 @@ pnpm --filter @tribalscholar/api prisma:seed
    - Joining report upload and university verification.
    - DBT installment release simulation via `mockDbtAdapter`.
    - Immutable audit trail explorer with full exportable compliance report.
+
+---
+
+## 5. Phase 6 Backend Governance & Lifecycle Summary (Prompts 6.1–6.4 Completed)
+
+### 1. Submission Orchestration Pipeline (Prompt 6.1)
+- **Files:** `apps/api/src/modules/ocrClient/ocrClient.service.ts`, `apps/api/src/modules/scrutiny/orchestrator.service.ts`, `apps/api/src/__tests__/orchestrator.test.ts`.
+- **Pipeline:** `POST /api/v1/applications/:id/submit` reads current documents, calls AI OCR service with exponential backoff retry and timeout handling, records OCR fields and evidence on `ApplicationDocument`, runs pinned `SchemeVersion` rules, generates `DeficiencyRecord` entries, and atomically transitions status to `UNDER_SCRUTINY` or `DEFICIENCY_RAISED`.
+
+### 2. Applicant Correction & Delta Re-Verification (Prompt 6.2)
+- **Files:** `apps/api/src/modules/scrutiny/orchestrator.service.ts` (`resolveDeficienciesAndReverify`), `apps/api/src/__tests__/deficiency-loop.test.ts`.
+- **Pipeline:** `POST /api/v1/applications/:id/resolve` marks resolved deficiencies as `isResolved = true` with notes and timestamps, executes delta OCR only on new replacement document versions, re-evaluates versioned scheme rules, and transitions compliant applications back to `UNDER_SCRUTINY`.
+
+### 3. Scrutiny Officer Verification Desk & Decision Package (Prompt 6.3)
+- **Files:** `apps/api/src/modules/scrutiny/scrutiny.service.ts`, `apps/api/src/modules/scrutiny/scrutiny.routes.ts`, `apps/api/src/__tests__/scrutiny.routes.test.ts`.
+- **Endpoints:**
+  - `GET /api/v1/scrutiny/queue` (filterable by scheme, status, confidence, search).
+  - `GET /api/v1/scrutiny/applications/:id` (2-column Decision Package with document view URLs, OCR evidence strings, applicant context, rule results, deficiency history).
+  - `POST /api/v1/scrutiny/applications/:id/review` (`APPROVE` -> `SCRUTINY_APPROVED` or `REQUEST_CORRECTION` -> `DEFICIENCY_RAISED`).
+  - **Human Governance Rule:** Mandatory justification strictly enforced when approving an application with active AI/rule flags (overrides).
+
+### 4. Selection Committee Decision, Sanction Order & DBT Disbursement (Prompt 6.4)
+- **Files:** `apps/api/src/modules/selection/selection.service.ts`, `apps/api/src/modules/selection/selection.routes.ts`, `apps/api/src/__tests__/selection.routes.test.ts`.
+- **Endpoints:**
+  - `GET /api/v1/selection/queue`: Applications queue eligible for selection or decided.
+  - `GET /api/v1/selection/applications/:id`: Post-selection summary with simulated live PFMS status.
+  - `POST /api/v1/selection/applications/:id/decide`: `SELECTION_OFFICER` selects (`PROVISIONALLY_SELECTED`) or rejects (`REJECTED`) a `SCRUTINY_APPROVED` application. On selection, generates sanction order number, sets fellowship amount, and creates `PostSelectionRecord` with `AWARD_LETTER_ISSUED`.
+  - `PATCH /api/v1/selection/applications/:id/post-selection`: Institutional verification toggle (`joiningReportSubmitted: true` -> `JOINING_REPORT_SUBMITTED`) and simulated Direct Benefit Transfer trigger via `mockDbtAdapter` (`DISBURSEMENT_ACTIVE` with tracking ID and PFMS reference).
+- **Audit Governance:** Full chronological audit trail (`APPLICATION_CREATED` -> `DOCUMENT_UPLOADED` -> `APPLICATION_SUBMITTED` -> `OFFICER_REVIEW_SUBMITTED` -> `SELECTION_DECISION_RECORDED` -> `APPLICATION_UPDATED`).
+- **Test Results:** 19/19 tests passing in `selection.routes.test.ts`; all 270 API tests passing; all 43 AI OCR tests passing (313/313 total).
+
+---
+
+## 6. Phase 7 Frontend Web Application & Live SIH Jury Demo (Prompts 7.1–7.5 COMPLETED)
+
+### 1. Architecture & Monorepo Web Deliverables
+- **Framework:** Next.js 14.2 (App Router), TypeScript 5.7, Tailwind CSS 3.4, Lucide React icons.
+- **Directory:** `apps/web/`
+- **Total Operational Routes:** 18 production App Router routes.
+
+### 2. Comprehensive Inventory of Delivered Phase 7 Interfaces:
+1. **SIH Demo Role Switcher & Authentication Shell (Prompt 7.1):**
+   - [apps/web/src/components/SihDemoRoleSwitcher.tsx](file:///Users/apple/Desktop/SIH26239/apps/web/src/components/SihDemoRoleSwitcher.tsx): Fixed top demo banner providing one-click instant persona switching between all 4 required SIH jury personas (Applicant, Scrutiny Officer, Selection Officer, System Admin) with offline fallback.
+   - [apps/web/src/context/AuthContext.tsx](file:///Users/apple/Desktop/SIH26239/apps/web/src/context/AuthContext.tsx): Typed authentication state with token caching and mock resilience.
+   - [apps/web/src/components/RoleGuard.tsx](file:///Users/apple/Desktop/SIH26239/apps/web/src/components/RoleGuard.tsx): Role-clearance routing protector.
+   - [apps/web/src/app/login/page.tsx](file:///Users/apple/Desktop/SIH26239/apps/web/src/app/login/page.tsx) & [apps/web/src/app/register/page.tsx](file:///Users/apple/Desktop/SIH26239/apps/web/src/app/register/page.tsx): Full auth forms and one-click demo access cards.
+
+2. **Scholar Intake Portal & Multi-Step Application Wizard (Prompt 7.2):**
+   - [apps/web/src/app/applicant/dashboard/page.tsx](file:///Users/apple/Desktop/SIH26239/apps/web/src/app/applicant/dashboard/page.tsx): Live applicant tracker displaying applications with status pills and active scheme cards for NFST (750 slots, ≤ ₹6,00,000/yr) and NOS (100 slots, ≤ ₹6,00,000/yr).
+   - [apps/web/src/app/applicant/apply/[schemeCode]/page.tsx](file:///Users/apple/Desktop/SIH26239/apps/web/src/app/applicant/apply/[schemeCode]/page.tsx): 4-step intake form with prescribed document slots (`ST_CASTE_CERTIFICATE`, `INCOME_CERTIFICATE`, `DOMICILE_CERTIFICATE`, `ACADEMIC_MARKSHEET`), simulated DigiLocker auto-fetch badged `Simulated Mock`, and "Submit for AI Scrutiny" progress visualizer.
+
+3. **Applicant Exception Management & Deficiency Resolution Desk (Prompt 7.3):**
+   - [apps/web/src/app/applicant/applications/[id]/page.tsx](file:///Users/apple/Desktop/SIH26239/apps/web/src/app/applicant/applications/[id]/page.tsx): 4-stage lifecycle progression stepper, actionable deficiency cards with exact OCR evidence string anchors (`page 1 · income field`), inline field corrections, document replacement uploader (local + DigiLocker mock), and **"Submit Corrections & Re-Verify"** button wired to `POST /api/v1/applications/:id/resolve`.
+   - [apps/web/src/app/applicant/deficiencies/page.tsx](file:///Users/apple/Desktop/SIH26239/apps/web/src/app/applicant/deficiencies/page.tsx): Dedicated deficiency resolution hub.
+
+4. **Officer Queue & Proposal-Accurate 2-Column AI Scrutiny Workspace (Prompt 7.4):**
+   - [apps/web/src/app/officer/queue/page.tsx](file:///Users/apple/Desktop/SIH26239/apps/web/src/app/officer/queue/page.tsx): Full officer queue with scheme, status, and OCR confidence filters.
+   - [apps/web/src/app/officer/applications/[id]/page.tsx](file:///Users/apple/Desktop/SIH26239/apps/web/src/app/officer/applications/[id]/page.tsx): Direct realization of SIH Proposal Page 4 UI Mockup:
+     - Left Panel (`01 · Submitted Document`): Document switcher tabs with version tags, authentic revenue certificate visualizer (`SAMPLE-2026-01482`, `₹80,000 per annum`, SDO authority), and interactive toggleable OCR bounding boxes.
+     - Right Panel (`02 · AI-Assisted Scrutiny`): Summary header (`APPLICANT`, `DOCUMENT SET 4 / 4 uploaded`, `CASE STATE Officer review`), `EXTRACTED FIELDS` grid with status badges (`Extracted`, `Consistent`, `Present`) and exact evidence strings (`Evidence: page 1 · name field`, `Matches application entry`, `Evidence: page 1 · income field`, `Evidence: page 1 · issuer field`), Rule engine checklist, statutory override justification modal, Selection Officer award controls, and append-only audit drawer.
+
+5. **System Admin Console, Versioned Scheme Rules DSL Studio & Dry-Run Simulator (Prompt 7.5):**
+   - [apps/web/src/app/admin/schemes/page.tsx](file:///Users/apple/Desktop/SIH26239/apps/web/src/app/admin/schemes/page.tsx):
+     - Version history selector for NFST and NOS with live published vs draft indicators.
+     - Structured thresholds editor: academic year, total fellowship slots, statutory income ceiling (₹), qualifying marks (%), rule condition predicates, and document requirements.
+     - Raw JSON Rule DSL spec view with inline format & syntax validator.
+     - Dry-run rule simulator test bench with quick presets (*Clean Eligible ST Scholar*, *Income Exceeds Ceiling*, *Marks Below Cutoff*, *Missing Caste Cert*) and real-time evaluation report (`COMPLIANT` / `DEFICIENT`, condition breakdowns).
+     - "Publish New Version" modal with statutory notice of immutable PostgreSQL `AuditAction.SCHEME_RULE_MODIFIED` logging.
+   - [apps/web/src/app/admin/page.tsx](file:///Users/apple/Desktop/SIH26239/apps/web/src/app/admin/page.tsx): Admin console navigation linking directly to the Rule DSL Studio.
+
+---
+
+## 7. SIH Jury Live Demonstration Script & Walkthrough
+
+| Stage | Persona & Role | Actions to Demonstrate Live |
+| :--- | :--- | :--- |
+| **1. Scholar Intake & DigiLocker** | **Birsa Munda** (`Role.APPLICANT`) | 1. Click "Applicant" in top role switcher.<br>2. Navigate to `/applicant/apply/NFST`.<br>3. Fill personal/fellowship details, click "Fetch from DigiLocker" (`Simulated Mock`) to automatically verify caste and revenue documents.<br>4. Click "Submit Application for AI Scrutiny" and observe real-time OCR extraction pipeline animation. |
+| **2. Deficiency Exception Loop** | **Birsa Munda** (`Role.APPLICANT`) | 1. Open `/applicant/applications/demo-app-1`.<br>2. Inspect actionable deficiency card highlighting income ceiling mismatch with evidence bounding box.<br>3. Submit inline correction or replacement certificate and click "Submit Corrections & Re-Verify". |
+| **3. Proposal Page 4 Scrutiny Workspace** | **Dr. Sunita Toppo** (`Role.SCRUTINY_OFFICER`) | 1. Click "Scrutiny Officer" in top role switcher.<br>2. Open `/officer/queue` and select an application to open `/officer/applications/demo-app-1`.<br>3. Show Proposal Page 4 layout: Left panel `01 · Submitted Document` (certificate preview, OCR toggle) vs Right panel `02 · AI-Assisted Scrutiny` (extracted fields with `Evidence: page 1 · ...` strings, rule checklist).<br>4. Demonstrate mandatory justification requirement on human overrides. |
+| **4. Selection Award & DBT Disbursement** | **Shri Rajeshwar Meena** (`Role.SELECTION_OFFICER`) | 1. Click "Selection Officer" in top role switcher.<br>2. Open `/officer/applications/demo-app-1`.<br>3. Trigger Selection Award: issue sanction order number and set fellowship amount.<br>4. Toggle institutional verification (joining report) and trigger simulated DBT installment disbursement via PFMS adapter. |
+| **5. Policy DSL & Rule Simulator** | **MoTA Administrator** (`Role.ADMIN`) | 1. Click "Admin" in top role switcher.<br>2. Open `/admin/schemes` (Versioned Scheme Rules DSL Studio).<br>3. Switch between NFST and NOS, clone a version to draft, adjust income ceiling or cutoff marks.<br>4. Test against Dry-Run Simulator with presets to show instant deterministic rule evaluation.<br>5. Publish new version with permanent audit logging. |
+
+---
+
+## 8. Verification & Monorepo Build Metrics
+- `pnpm -r build`: 100% clean compilation across all monorepo packages (`packages/shared`, `apps/api`, `apps/web`).
+- `pnpm --filter @tribalscholar/web typecheck`: 0 TypeScript errors.
+- `pnpm --filter @tribalscholar/web build`: 18/18 App Router routes statically/dynamically generated.
+- Monorepo backend tests: 313/313 passing across 21 test suites (270 Vitest in `apps/api` + 43 Pytest in `services/ai-ocr`).

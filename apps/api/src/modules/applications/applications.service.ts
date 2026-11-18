@@ -269,7 +269,8 @@ export class ApplicationsService {
     // Form data can only be modified in DRAFT or DEFICIENT state
     if (
       application.status !== ApplicationStatus.DRAFT &&
-      application.status !== ApplicationStatus.DEFICIENT
+      application.status !== ApplicationStatus.DEFICIENT &&
+      application.status !== ApplicationStatus.DEFICIENCY_RAISED
     ) {
       throw new BadRequestError(
         `Cannot update form data in status '${application.status}'. Form modifications are only allowed in DRAFT or DEFICIENT status.`
@@ -445,7 +446,8 @@ export class ApplicationsService {
 
     if (
       application.status !== ApplicationStatus.DRAFT &&
-      application.status !== ApplicationStatus.DEFICIENT
+      application.status !== ApplicationStatus.DEFICIENT &&
+      application.status !== ApplicationStatus.DEFICIENCY_RAISED
     ) {
       throw new BadRequestError(
         `Cannot upload documents in status '${application.status}'. Uploads are only allowed in DRAFT or DEFICIENT status.`

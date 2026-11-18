@@ -668,7 +668,16 @@ export function evaluateDocumentCompleteness(
   let uploadedCount = 0;
 
   for (const spec of normalizedSpecs) {
-    const isUploaded = uploadedSet.has(spec.documentType);
+    const isUploaded =
+      uploadedSet.has(spec.documentType) ||
+      (spec.documentType === DocumentType.CASTE_CERTIFICATE &&
+        uploadedSet.has(DocumentType.ST_CASTE_CERTIFICATE)) ||
+      (spec.documentType === DocumentType.ST_CASTE_CERTIFICATE &&
+        uploadedSet.has(DocumentType.CASTE_CERTIFICATE)) ||
+      (spec.documentType === DocumentType.MARKSHEET_PG &&
+        uploadedSet.has(DocumentType.ACADEMIC_MARKSHEET)) ||
+      (spec.documentType === DocumentType.ACADEMIC_MARKSHEET &&
+        uploadedSet.has(DocumentType.MARKSHEET_PG));
     if (isUploaded) {
       uploadedCount++;
     }
