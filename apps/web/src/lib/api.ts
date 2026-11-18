@@ -741,3 +741,37 @@ export async function simulateSchemeVersion(
   return result.data;
 }
 
+export interface DemoResetSummary {
+  durationMs: number;
+  timestamp: string;
+  counts: {
+    users: number;
+    schemes: number;
+    schemeVersions: number;
+    applications: number;
+    documents: number;
+    deficiencies: number;
+    officerReviews: number;
+    postSelectionRecords: number;
+    auditLogs: number;
+  };
+  applications: Array<{
+    applicationNumber: string;
+    schemeCode: string;
+    status: string;
+    applicantEmail: string;
+    description: string;
+  }>;
+}
+
+export async function resetDemoState(): Promise<DemoResetSummary> {
+  interface ResetEnvelope {
+    status: string;
+    message: string;
+    data: DemoResetSummary;
+  }
+  const result = await apiClient.post<ResetEnvelope>('/api/v1/demo/reset', {});
+  return result.data;
+}
+
+

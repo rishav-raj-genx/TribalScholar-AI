@@ -130,7 +130,7 @@ class StructuredFieldExtractor:
 
         # 2. Check same-line patterns
         name_anchor_regex = re.compile(
-            r"(?:Name\s+of\s+(?:the\s+)?(?:Applicant|Candidate|Student|Scholar)|Applicant\s+Name|Candidate\s+Name|Candidate|Applicant|Dear)\s*[:\s]+([A-Z][a-zA-Z\s]{2,40})",
+            r"(?:Name\s+of\s+(?:the\s+)?(?:Applicant|Candidate|Student|Scholar)|Applicant\s+Name|Candidate\s+Name|Name|Candidate|Applicant|Dear)\s*[:\s]+([A-Z][a-zA-Z\s]{2,40})",
             re.IGNORECASE,
         )
         certify_regex = re.compile(
@@ -336,11 +336,33 @@ class StructuredFieldExtractor:
 
     def _extract_certificate_ref(self, lines: List[OcrLine], full_text: str) -> Optional[ExtractedField]:
         """Extract certificate reference or registration number."""
+        # 1. Multiline anchor check (label on one line, value on the next)
+        for i, line in enumerate(lines):
+            line_str = line.text.strip()
+            if re.match(r"^(?:Certificate\s+No\.?|Cert\s+Ref\.?|Cert\s+No\.?|Registration\s+No\.?|Ref\s+No\.?|Roll\s+No\.?)[:\s]*$", line_str, re.IGNORECASE) and i + 1 < len(lines):
+                next_line = lines[i + 1]
+                m_next = re.search(r"([A-Z0-9\/\-_]{5,35})", next_line.text.strip())
+                if m_next:
+                    ref_val = m_next.group(1).strip()
+                    return ExtractedField(
+                        fieldName="certificateRef",
+                        value=ref_val,
+                        status="VERIFIED",
+                        confidence=round(next_line.confidence, 3),
+                        evidence=FieldEvidence(
+                            page=next_line.pageNumber,
+                            fieldLabel="ref field",
+                            bbox=next_line.boundingBox,
+                            rawSnippet=f"{line.text} {next_line.text}",
+                        ),
+                        rawText=next_line.text,
+                    )
+
         ref_regex = re.compile(
-            r"(?:Certificate\s+No\.?|Cert\s+No\.?|Registration\s+No\.?|Ref\s+No\.?|Roll\s+No\.?|CAS\s+(?:Number|No\.?))[:\s]*([A-Z0-9\/\-_]{5,35})",
+            r"(?:Certificate\s+No\.?|Cert\s+Ref\.?|Cert\s+No\.?|Registration\s+No\.?|Ref\s+No\.?|Roll\s+No\.?|CAS\s+(?:Number|No\.?))[:\s]*([A-Z0-9\/\-_]{5,35})",
             re.IGNORECASE,
         )
-        standard_ref_pattern = re.compile(r"\b([A-Z]{3,8}[-_/][0-9]{4}[-_/][0-9A-Z]{4,10})\b")
+        standard_ref_pattern = re.compile(r"\b([A-Z0-9]{2,8}(?:[-_/][0-9A-Z]{2,10}){2,5})\b")
 
         for line in lines:
             m = ref_regex.search(line.text) or standard_ref_pattern.search(line.text)

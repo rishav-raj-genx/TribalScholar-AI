@@ -103,7 +103,7 @@ export class SelectionService {
     input: SelectionDecisionInput,
     context?: RequestAuditContext
   ): Promise<SelectionDecideResponse> {
-    const application = await prisma.application.findUnique({
+    let application = await prisma.application.findUnique({
       where: { id: applicationId },
       include: {
         scheme: true,
@@ -116,6 +116,22 @@ export class SelectionService {
         postSelection: true,
       },
     });
+
+    if (!application) {
+      application = await prisma.application.findUnique({
+        where: { applicationNumber: applicationId },
+        include: {
+          scheme: true,
+          schemeVersion: true,
+          applicant: {
+            include: {
+              applicantProfile: true,
+            },
+          },
+          postSelection: true,
+        },
+      });
+    }
 
     if (!application) {
       throw new NotFoundError(`Application not found with ID: ${applicationId}`);
@@ -148,7 +164,7 @@ export class SelectionService {
       const result = await prisma.$transaction(async (tx) => {
         // 1. Update Application status to PROVISIONALLY_SELECTED
         const updatedApp = await tx.application.update({
-          where: { id: applicationId },
+          where: { id: application.id },
           data: {
             status: ApplicationStatus.PROVISIONALLY_SELECTED,
           },
@@ -166,9 +182,9 @@ export class SelectionService {
         };
 
         const postSelection = await tx.postSelectionRecord.upsert({
-          where: { applicationId },
+          where: { applicationId: application.id },
           create: {
-            applicationId,
+            applicationId: application.id,
             status: PostSelectionStatus.AWARD_LETTER_ISSUED,
             awardLetterUrl,
             sanctionOrderNumber,
@@ -192,7 +208,7 @@ export class SelectionService {
         // 3. Record OfficerReview for Selection Committee
         await tx.officerReview.create({
           data: {
-            applicationId,
+            applicationId: application.id,
             officerId: officer.id,
             decision: ReviewDecision.RECOMMENDED_FOR_SELECTION,
             remarks: input.remarks,
@@ -319,7 +335,7 @@ export class SelectionService {
     input: PostSelectionUpdateInput,
     context?: RequestAuditContext
   ): Promise<PostSelectionUpdateResponse> {
-    const application = await prisma.application.findUnique({
+    let application = await prisma.application.findUnique({
       where: { id: applicationId },
       include: {
         applicant: {
@@ -330,6 +346,20 @@ export class SelectionService {
         postSelection: true,
       },
     });
+
+    if (!application) {
+      application = await prisma.application.findUnique({
+        where: { applicationNumber: applicationId },
+        include: {
+          applicant: {
+            include: {
+              applicantProfile: true,
+            },
+          },
+          postSelection: true,
+        },
+      });
+    }
 
     if (!application) {
       throw new NotFoundError(`Application not found with ID: ${applicationId}`);

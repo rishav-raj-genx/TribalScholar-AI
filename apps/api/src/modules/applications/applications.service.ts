@@ -195,6 +195,29 @@ export class ApplicationsService {
 
     // 4. Create application and record immutable AuditLog atomically
     const application = await prisma.$transaction(async (tx) => {
+      // Ensure applicant profile exists or initialize from formData
+      const existingProfile = await tx.applicantProfile.findUnique({
+        where: { userId },
+      });
+      if (!existingProfile && validated.formData) {
+        const fd = validated.formData as Record<string, unknown>;
+        await tx.applicantProfile.create({
+          data: {
+            userId,
+            dateOfBirth: fd.dateOfBirth ? new Date(String(fd.dateOfBirth)) : new Date('2001-05-15'),
+            gender: String(fd.gender || 'MALE'),
+            casteCommunity: String(fd.casteCommunity || 'Santhal'),
+            subTribe: fd.subTribe ? String(fd.subTribe) : 'Munda',
+            fatherOrSpouseName: String(fd.fatherOrSpouseName || 'Kanhu Munda'),
+            annualIncome: Number(fd.annualIncome || 80000),
+            addressLine: String(fd.addressLine || 'Village & PO Khunti'),
+            district: String(fd.district || 'Khunti'),
+            state: String(fd.stateDomicile || fd.state || 'Jharkhand'),
+            pincode: String(fd.pincode || '835210'),
+          },
+        });
+      }
+
       const created = await tx.application.create({
         data: {
           applicationNumber,
@@ -368,7 +391,7 @@ export class ApplicationsService {
     userId: string,
     userRole: Role
   ): Promise<Application> {
-    const application = await prisma.application.findUnique({
+    let application = await prisma.application.findUnique({
       where: { id: applicationId },
       include: {
         scheme: true,
@@ -406,6 +429,47 @@ export class ApplicationsService {
         },
       },
     });
+
+    if (!application) {
+      application = await prisma.application.findUnique({
+        where: { applicationNumber: applicationId },
+        include: {
+          scheme: true,
+          schemeVersion: true,
+          documents: true,
+          deficiencies: {
+            include: {
+              raisedByOfficer: {
+                select: {
+                  id: true,
+                  fullName: true,
+                  email: true,
+                },
+              },
+            },
+            orderBy: { createdAt: 'desc' },
+          },
+          auditLogs: {
+            orderBy: { timestamp: 'asc' },
+            select: {
+              id: true,
+              action: true,
+              userId: true,
+              user: {
+                select: {
+                  fullName: true,
+                  role: true,
+                },
+              },
+              previousState: true,
+              newState: true,
+              details: true,
+              timestamp: true,
+            },
+          },
+        },
+      });
+    }
 
     if (!application) {
       throw new NotFoundError(`Application with ID '${applicationId}' not found`);

@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Role } from '@tribalscholar/shared';
 import { DEMO_PERSONAS, useAuth } from '../context/AuthContext';
+import { resetDemoState } from '../lib/api';
 import {
   UserCheck,
   ShieldAlert,
@@ -10,6 +11,7 @@ import {
   Settings,
   LogOut,
   Sparkles,
+  RotateCcw,
 } from 'lucide-react';
 
 interface PersonaButtonConfig {
@@ -58,6 +60,39 @@ const BUTTON_CONFIGS: PersonaButtonConfig[] = [
 
 export function SihDemoRoleSwitcher(): React.JSX.Element {
   const { user, switchRoleDemo, logout, isLoading } = useAuth();
+  const [isResetting, setIsResetting] = useState<boolean>(false);
+
+  const handleResetDemo = async (): Promise<void> => {
+    const confirmed = window.confirm(
+      'Reset TribalScholar AI database and storage to pristine SIH 2026 jury state?\n\n' +
+        'This will reset:\n' +
+        '• Schemes: NFST v1 (Published, 750 slots), NOS v1 (Published, 100 slots)\n' +
+        '• 5 Workflow Applications (DRAFT, UNDER_SCRUTINY, DEFICIENCY_RAISED, PROVISIONALLY_SELECTED, NOS OVERSEAS)\n' +
+        '• 4 Standard Demo Users (Scholar, Scrutiny Officer, Selection Officer, Admin)'
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setIsResetting(true);
+      const res = await resetDemoState();
+      alert(
+        `Demo environment successfully reset in ${res.durationMs}ms!\n\n` +
+          `• Applications: ${res.counts.applications}\n` +
+          `• Documents: ${res.counts.documents}\n` +
+          `• Open Deficiencies: ${res.counts.deficiencies}\n` +
+          `• Selected / DBT: ${res.counts.postSelectionRecords}`
+      );
+      window.location.reload();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error during demo reset';
+      alert(`Demo reset failed: ${msg}`);
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   return (
     <aside aria-label="SIH Jury Demonstration Persona Switcher" className="w-full bg-slate-900 border-b border-slate-700/80 text-white text-xs px-3 py-2 z-50 sticky top-0 shadow-md">
@@ -84,7 +119,7 @@ export function SihDemoRoleSwitcher(): React.JSX.Element {
               <button
                 key={config.role}
                 type="button"
-                disabled={isLoading}
+                disabled={isLoading || isResetting}
                 onClick={() => {
                   void switchRoleDemo(config.role);
                 }}
@@ -110,8 +145,19 @@ export function SihDemoRoleSwitcher(): React.JSX.Element {
           })}
         </div>
 
-        {/* Right: Active user state & Sign out */}
+        {/* Right: Reset Demo State & Active user state & Sign out */}
         <div className="flex items-center gap-2 ml-auto">
+          <button
+            type="button"
+            disabled={isResetting || isLoading}
+            onClick={handleResetDemo}
+            title="Reset Database & S3 Storage to Pristine SIH Demo State (<2s)"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-rose-950/80 hover:bg-rose-900 text-rose-200 hover:text-white border border-rose-700/60 font-medium text-[11px] transition shadow-sm disabled:opacity-50 cursor-pointer"
+          >
+            <RotateCcw className={`w-3.5 h-3.5 ${isResetting ? 'animate-spin text-rose-400' : ''}`} />
+            <span>{isResetting ? 'Resetting...' : 'Reset Demo State'}</span>
+          </button>
+
           {user ? (
             <div className="flex items-center gap-2">
               <div className="text-right hidden sm:block">

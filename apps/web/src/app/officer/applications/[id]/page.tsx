@@ -469,11 +469,11 @@ export default function OfficerWorkspacePage(): React.JSX.Element {
             Back to Queue
           </Link>
           <span className="text-slate-300">|</span>
-          <span className="text-xs font-bold text-slate-900 font-mono">
+          <h1 className="text-xs font-bold text-slate-900 font-mono">
             {application.applicationNumber}
-          </span>
+          </h1>
           <span className="text-[10px] font-mono font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">
-            {application.scheme.code} 2026-27
+            {(application.scheme?.code || (decisionPkg as unknown as { scheme?: { code: string } })?.scheme?.code || 'NFST')} 2026-27
           </span>
         </div>
 
@@ -816,7 +816,7 @@ export default function OfficerWorkspacePage(): React.JSX.Element {
           <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
             <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-1.5 border-b border-slate-100 pb-2">
               <ShieldCheck className="w-4 h-4 text-emerald-700" />
-              Scheme Rule Engine Checklist ({application.scheme.code} v1)
+              Scheme Rule Engine Checklist ({(application.scheme?.code || (decisionPkg as unknown as { scheme?: { code: string } })?.scheme?.code || 'NFST')} v1)
             </h3>
 
             <div className="space-y-2 text-xs">

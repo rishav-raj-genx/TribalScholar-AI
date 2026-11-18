@@ -63,6 +63,25 @@ export interface ScrutinyDecisionPackage {
     createdAt: Date;
     updatedAt: Date;
     formData: unknown;
+    scheme?: {
+      id: string;
+      code: string;
+      name: string;
+      description?: string;
+      version?: {
+        id: string;
+        versionNumber: number;
+        academicYear: string;
+      };
+    };
+    schemeVersion?: {
+      id: string;
+      versionNumber: number;
+      academicYear: string;
+      incomeCeiling?: number;
+      totalSlots?: number;
+    };
+    applicant?: unknown;
   };
   applicant: {
     id: string;
@@ -80,6 +99,7 @@ export interface ScrutinyDecisionPackage {
       academicYear: string;
     };
   };
+  schemeVersion?: unknown;
   documents: Array<{
     id: string;
     documentType: string;
@@ -264,46 +284,55 @@ export class ScrutinyService {
    * structured for the 2-column Officer Scrutiny UI.
    */
   async getDecisionPackage(applicationId: string): Promise<ScrutinyDecisionPackage> {
-    const application = await prisma.application.findUnique({
-      where: { id: applicationId },
-      include: {
-        scheme: true,
-        schemeVersion: true,
-        applicant: {
-          include: {
-            applicantProfile: true,
-          },
-        },
-        documents: {
-          where: { isCurrent: true },
-          orderBy: { documentType: 'asc' },
-        },
-        deficiencies: {
-          include: {
-            raisedByOfficer: {
-              select: {
-                id: true,
-                fullName: true,
-                email: true,
-              },
-            },
-          },
-          orderBy: { createdAt: 'desc' },
-        },
-        reviews: {
-          include: {
-            officer: {
-              select: {
-                id: true,
-                fullName: true,
-                email: true,
-              },
-            },
-          },
-          orderBy: { reviewedAt: 'desc' },
+    const includeParams = {
+      scheme: true,
+      schemeVersion: true,
+      applicant: {
+        include: {
+          applicantProfile: true,
         },
       },
+      documents: {
+        where: { isCurrent: true },
+        orderBy: { documentType: 'asc' as const },
+      },
+      deficiencies: {
+        include: {
+          raisedByOfficer: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' as const },
+      },
+      reviews: {
+        include: {
+          officer: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: { reviewedAt: 'desc' as const },
+      },
+    };
+
+    let application = await prisma.application.findUnique({
+      where: { id: applicationId },
+      include: includeParams,
     });
+
+    if (!application) {
+      application = await prisma.application.findUnique({
+        where: { applicationNumber: applicationId },
+        include: includeParams,
+      });
+    }
 
     if (!application) {
       throw new NotFoundError(`Application with ID '${applicationId}' not found`);
@@ -375,6 +404,34 @@ export class ScrutinyService {
 
     const recommendation = hasFlag ? 'REQUEST_CORRECTION' : 'APPROVE';
 
+    const schemeData = {
+      id: application.scheme.id,
+      code: application.scheme.code,
+      name: application.scheme.name,
+      description: application.scheme.description,
+      version: {
+        id: application.schemeVersion.id,
+        versionNumber: application.schemeVersion.versionNumber,
+        academicYear: application.schemeVersion.academicYear,
+      },
+    };
+
+    const schemeVersionData = {
+      id: application.schemeVersion.id,
+      versionNumber: application.schemeVersion.versionNumber,
+      academicYear: application.schemeVersion.academicYear,
+      incomeCeiling: Number(application.schemeVersion.incomeCeiling),
+      totalSlots: application.schemeVersion.totalSlots,
+    };
+
+    const applicantData = {
+      id: application.applicant.id,
+      fullName: application.applicant.fullName,
+      email: application.applicant.email,
+      phone: application.applicant.applicantProfile?.addressLine || null,
+      profile: application.applicant.applicantProfile,
+    };
+
     return {
       application: {
         id: application.id,
@@ -384,23 +441,13 @@ export class ScrutinyService {
         createdAt: application.createdAt,
         updatedAt: application.updatedAt,
         formData: application.formData,
+        scheme: schemeData,
+        schemeVersion: schemeVersionData,
+        applicant: applicantData,
       },
-      applicant: {
-        id: application.applicant.id,
-        fullName: application.applicant.fullName,
-        email: application.applicant.email,
-        profile: application.applicant.applicantProfile,
-      },
-      scheme: {
-        id: application.scheme.id,
-        code: application.scheme.code,
-        name: application.scheme.name,
-        version: {
-          id: application.schemeVersion.id,
-          versionNumber: application.schemeVersion.versionNumber,
-          academicYear: application.schemeVersion.academicYear,
-        },
-      },
+      applicant: applicantData,
+      scheme: schemeData,
+      schemeVersion: schemeVersionData,
       documents: documentsWithViewUrls,
       ruleEvaluation,
       aiFindings: {
@@ -432,7 +479,7 @@ export class ScrutinyService {
       throw new BadRequestError('Officer user ID is required to submit scrutiny review');
     }
 
-    const application = await prisma.application.findUnique({
+    let application = await prisma.application.findUnique({
       where: { id: applicationId },
       include: {
         scheme: true,
@@ -441,6 +488,18 @@ export class ScrutinyService {
         deficiencies: { where: { status: DeficiencyStatus.OPEN } },
       },
     });
+
+    if (!application) {
+      application = await prisma.application.findUnique({
+        where: { applicationNumber: applicationId },
+        include: {
+          scheme: true,
+          schemeVersion: true,
+          documents: { where: { isCurrent: true } },
+          deficiencies: { where: { status: DeficiencyStatus.OPEN } },
+        },
+      });
+    }
 
     if (!application) {
       throw new NotFoundError(`Application with ID '${applicationId}' not found`);

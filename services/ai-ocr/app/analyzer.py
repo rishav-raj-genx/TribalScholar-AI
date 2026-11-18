@@ -253,7 +253,15 @@ class DocumentIntelligenceAnalyzer:
         declared_category = applicant_context.get("category")
         if declared_category and "category" in extracted_fields:
             ext_cat = str(extracted_fields["category"].value)
-            is_cat_match = "st" in str(declared_category).lower() and "st" in ext_cat.lower()
+            st_tokens = {"st", "scheduled tribe", "santhal", "munda", "oraon", "gond", "bhil", "bodo", "khasi"}
+            dec_lower = str(declared_category).lower()
+            ext_lower = ext_cat.lower()
+            is_cat_match = (
+                ("st" in dec_lower and "st" in ext_lower)
+                or any(t in dec_lower and t in ext_lower for t in st_tokens)
+                or ("scheduled tribe" in ext_lower and any(t in dec_lower for t in st_tokens))
+                or ("scheduled tribe" in dec_lower and any(t in ext_lower for t in st_tokens))
+            )
             notes = None if is_cat_match else f"Declared category '{declared_category}' does not match '{ext_cat}'."
             if not is_cat_match:
                 deficiencies.append(notes)

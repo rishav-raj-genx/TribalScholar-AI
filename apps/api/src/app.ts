@@ -13,6 +13,7 @@ import { schemesRouter } from './modules/schemes/schemes.routes.js';
 import { applicantRouter, applicationsRouter } from './modules/applications/applications.routes.js';
 import { scrutinyRouter } from './modules/scrutiny/scrutiny.routes.js';
 import { selectionRouter } from './modules/selection/selection.routes.js';
+import { demoRouter } from './modules/demo/demo.routes.js';
 
 export function createApp(): Express {
   const app: Express = express();
@@ -71,6 +72,7 @@ export function createApp(): Express {
   app.use('/api/v1/applications', applicationsRouter);
   app.use('/api/v1/scrutiny', scrutinyRouter);
   app.use('/api/v1/selection', selectionRouter);
+  app.use('/api/v1/demo', demoRouter);
 
   // 4. Fallback 404 & Global Error Handling
   app.use(notFoundHandler);

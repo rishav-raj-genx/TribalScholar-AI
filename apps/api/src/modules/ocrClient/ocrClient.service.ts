@@ -101,7 +101,7 @@ export class OcrClientService {
   ) {
     this.baseUrl = baseUrl.replace(/\/+$/, '');
     this.apiKey = apiKey;
-    this.defaultTimeoutMs = options?.timeoutMs ?? 15000;
+    this.defaultTimeoutMs = options?.timeoutMs ?? 60000;
     this.defaultMaxRetries = options?.maxRetries ?? 2;
     this.defaultRetryDelayMs = options?.retryDelayMs ?? 500;
   }

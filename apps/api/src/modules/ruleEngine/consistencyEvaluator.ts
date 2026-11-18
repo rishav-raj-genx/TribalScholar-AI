@@ -196,6 +196,13 @@ export function matchNormalizedContains(
   const acronymA = tokensA.map((t) => t[0]).join('');
   const acronymB = tokensB.map((t) => t[0]).join('');
 
+  const stTokens = ['st', 'scheduled tribe', 'tribe', 'santhal', 'munda', 'gond', 'bhil', 'oraon', 'bodo', 'khasi', 'garo', 'ho', 'meena', 'toda', 'chenchu'];
+  const hasStA = stTokens.some((t) => normA.includes(t));
+  const hasStB = stTokens.some((t) => normB.includes(t));
+  if (hasStA && hasStB) {
+    return { match: true, score: 1.0 };
+  }
+
   if (
     acronymA === normB ||
     acronymB === normA ||

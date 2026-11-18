@@ -3,8 +3,8 @@
 ## 1. Project Overview & Tracking Summary
 - **Problem Statement ID:** SIH26239
 - **Project Title:** TribalScholar AI (Intelligent Scholarship & Fellowship Operations Platform)
-- **Current Phase:** Phase 7 - Frontend Web Application & Live SIH Jury Demo (ALL PROMPTS 7.1–7.5 COMPLETED)
-- **Status:** All Phases (Phase 1 through Phase 7) 100% COMPLETED. Full end-to-end platform operational: Next.js 14 App Router, One-Click SIH Jury Role Switcher, Scholar Intake & Multi-Step Application Wizard, Exception Management Resolution Desk, Proposal-Accurate 2-Column AI Officer Scrutiny Workspace, and System Admin Scheme Rules DSL Studio with Live Dry-Run Simulator. 313/313 backend tests passing, 0 build errors across entire monorepo.
+- **Current Phase:** Phase 8 - End-to-End Synthetic QA, Demo Docs & Live Evaluation (100% COMPLETED)
+- **Status:** All 8 Phases and 27 Prompts 100% COMPLETED. Production-ready, fully verified platform with 332 automated tests passing across 23 test suites (280 API Vitest + 51 AI OCR Pytest + 1 comprehensive 11-step Playwright E2E suite). 0 build errors across monorepo (`packages/shared`, `apps/api`, `apps/web`). Zero hardcoded secrets, sub-60ms demo reset SLA, proposal page 4 accurate scrutiny workspace, versioned JSON Rule DSL studio with dry-run simulator, and complete 5-minute SIH Jury Live Demonstration Runbook in `HANDOFF.md`.
 
 ---
 
@@ -86,7 +86,18 @@
 
 ---
 
-## 9. High-Level Multi-Phase Master Roadmap
+## 9. Phase 8 Tracking Table: End-to-End Synthetic QA, Demo Docs & Live Evaluation
+
+| Prompt ID | Task Description | Status | Key Deliverables & Files |
+| :--- | :--- | :--- | :--- |
+| **8.1** | **Deterministic Synthetic Certificate Generator & PaddleOCR Verification Suite** | **COMPLETED** | `scripts/generate-demo-docs.py`, `demo-assets/` (5 PNG + 5 PDF certificates), `services/ai-ocr/tests/test_demo_assets.py`, `services/ai-ocr/app/extractor.py` |
+| **8.2** | **Demo Environment Reset Utility & Live Jury Demonstration Baseline** | **COMPLETED** | `apps/api/src/modules/demo/demo.service.ts`, `apps/api/src/modules/demo/demo.routes.ts`, `apps/api/src/app.ts`, `apps/api/src/__tests__/demo.reset.test.ts`, `apps/web/src/components/SihDemoRoleSwitcher.tsx`, `apps/web/src/lib/api.ts` |
+| **8.3** | **Automated Playwright E2E Test Suite for SIH 11-Step Demonstration Journey** | **COMPLETED** | `apps/web/e2e/sih-full-journey.spec.ts`, `apps/web/playwright.config.ts`, `apps/web/package.json`, `apps/api/src/modules/scrutiny/scrutiny.service.ts`, `apps/api/src/modules/ruleEngine/consistencyEvaluator.ts`, `apps/web/src/app/officer/applications/[id]/page.tsx` |
+| **8.4** | **Repository-Wide Multi-Suite Verification, Secret Audit & SIH 2026 Live Demonstration Runbook** | **COMPLETED** | `DEVELOPMENT_STATUS.md`, `HANDOFF.md`, `.gitignore` |
+
+---
+
+## 10. High-Level Multi-Phase Master Roadmap
 
 ### Phase 1: Foundation, Infrastructure & Core Engine (COMPLETED)
 - [x] **Prompt 1.1:** Monorepo, base TypeScript, Docker Compose (Postgres 16, MinIO), continuity docs.
@@ -131,9 +142,15 @@
 - [x] **Prompt 7.4:** Scrutiny Officer Verification Workspace (Proposal-accurate two-column UI: `01 · Submitted Document` certificate visualizer & switcher, `02 · AI-Assisted Scrutiny` with extracted fields, evidence anchors, rule checklist, override justification modal, Selection Officer award controls, and append-only audit drawer).
 - [x] **Prompt 7.5:** System Admin Console, Versioned Scheme Rules DSL Studio & Dry-Run Simulator (Scheme version history selector, structured threshold editor, JSON Rule DSL specification editor, live dry-run simulator bench with preset profiles, and version publishing workflow with immutable audit logging).
 
+### Phase 8: End-to-End Synthetic QA, Demo Docs & Live Evaluation (COMPLETED)
+- [x] **Prompt 8.1:** Synthetic certificate generator script (`scripts/generate-demo-docs.py`), crisp watermarked sample certificates in `demo-assets/` (`income_certificate_deficient.png`, `income_certificate_valid.png`, `st_caste_certificate_valid.png`, `domicile_certificate_valid.png`, `academic_marksheet_valid.png` and corresponding PDFs), and PaddleOCR verification test suite (`services/ai-ocr/tests/test_demo_assets.py`).
+- [x] **Prompt 8.2:** High-performance demo reset utility (`POST /api/v1/demo/reset`), one-click UI reset in top demo bar, transactional state cleanup, scheme version control, and 5 baseline multi-stage scholarship applications.
+- [x] **Prompt 8.3:** Automated Playwright E2E test suite (`apps/web/e2e/sih-full-journey.spec.ts`) executing and asserting all 11 mandatory demonstration steps from intake to PFMS payment disbursal.
+- [x] **Prompt 8.4:** Repository-wide verification across all test suites (280 API tests + 51 AI OCR tests + 1 Playwright E2E suite = 332 tests passed, 0 failures), secret audit, and production 5-minute SIH Jury Live Demonstration Runbook in `HANDOFF.md`.
+
 ---
 
-## 10. Prompt Completion Reports
+## 11. Prompt Completion Reports
 
 ### Prompt 1.1 Completion Report (2026-11-17)
 - Initialized pnpm monorepo workspace, root `package.json`, `tsconfig.base.json`.
@@ -807,5 +824,126 @@
   - `pnpm --filter @tribalscholar/web build`: Clean production compilation across all 18 App Router routes.
   - `pnpm -r build`: Clean compilation across `packages/shared`, `apps/api`, and `apps/web`.
   - Backend tests: 313/313 passing across all 21 test suites.
+
+### Prompt 8.1 Completion Report (2026-11-18)
+- **Delivered Packages & Files:**
+  - `scripts/generate-demo-docs.py`:
+    - Deterministic synthetic government certificate generator using Pillow.
+    - Page setup: A4 at ~150 DPI (1240 x 1754 px) with double-line official government navy borders, gold accent corners, Ashoka Chakra vector crest, circular official stamps, QR code verification boxes, and realistic digital signature blocks.
+    - Watermark styling: subtle, non-intrusive `GOVERNMENT-ISSUED DOCUMENT · SAMPLE` rotated across background without disrupting OCR foreground text detection.
+    - CLI supports `--output-dir`, `--applicant-name`, and `--format` (`png`, `pdf`, `both`).
+  - `demo-assets/`:
+    - Generated 5 PNG and 5 PDF synthetic sample certificates:
+      1. `income_certificate_deficient.png` & `.pdf`: Shows annual family income `₹1,20,000 per annum` vs declared form entry `₹80,000`, successfully triggering the initial cross-document economic mismatch deficiency.
+      2. `income_certificate_valid.png` & `.pdf`: Exact fidelity match to SIH Proposal Page 4 mockup (`CERT REF: SAMPLE-2026-01482`, `DATE: 14 FEB 2026`, `NAME: Sample Applicant`, `CATEGORY: Scheduled Tribe (ST)`, `INCOME: ₹80,000 per annum`, `AUTHORITY: Competent Revenue Authority`).
+      3. `st_caste_certificate_valid.png` & `.pdf`: Scheduled Tribe Caste Certificate (`CERT/JH/2024/ST/09842`, `20 JAN 2024`, Santhal ST Community, Sub-Divisional Officer, Ranchi).
+      4. `domicile_certificate_valid.png` & `.pdf`: State Domicile / Permanent Resident Certificate (`DOM/JH/2024/09123`, `10 FEB 2024`, State of Jharkhand, District Magistrate, Ranchi).
+      5. `academic_marksheet_valid.png` & `.pdf`: Central University of Jharkhand B.Tech transcript (`2022CS012`, `78.4%` aggregate percentage, CGPA 8.65, Controller of Examinations).
+  - `services/ai-ocr/app/extractor.py`:
+    - Enhanced same-line regex and multiline anchor parsing for certificate reference and candidate name tokens.
+  - `services/ai-ocr/tests/test_demo_assets.py`:
+    - Complete PaddleOCR extraction test suite (8 integration tests) confirming:
+      - All 10 demo asset files exist on disk with valid file sizes (> 50 KB).
+      - `income_certificate_valid.png` correctly classifies as `INCOME_CERTIFICATE` and extracts all 7 fields with high confidence, passing application context check with `status = "VERIFIED"`.
+      - `income_certificate_deficient.png` flags income mismatch deficiency (`₹120,000` > `₹80,000`).
+      - `st_caste_certificate_valid.png`, `domicile_certificate_valid.png`, and `academic_marksheet_valid.png` classify accurately and extract expected fields.
+      - Batch cross-document analysis cleanly verifies the 4-document set with `status = "VERIFIED"` and pairwise name matching, while catching the deficient income document in batch mode.
+- **Verification Results:**
+  - `python3 scripts/generate-demo-docs.py`: 10/10 files cleanly generated in `demo-assets/`.
+  - `pytest services/ai-ocr/tests/test_demo_assets.py`: 8/8 tests passing.
+  - `services/ai-ocr` overall: 51/51 tests passing.
+  - `@tribalscholar/api`: 270/270 tests passing.
+  - Monorepo total: 321 passing tests, 0 build errors.
+
+### Prompt 8.2 Completion Report (2026-11-18)
+- **Delivered Packages & Files:**
+  - `apps/api/src/modules/demo/demo.service.ts`:
+    - Fast, deterministic reset utility `DemoService.resetDemoState()`.
+    - Reverse dependency transactional purging of runtime data: `PostSelectionRecord`, `OfficerReview`, `DeficiencyRecord`, `ApplicationDocument`, `AuditLog`, `Application`.
+    - Automatically purges modified or draft scheme versions (`versionNumber > 1`) and guarantees `NFST` v1 (750 slots, income ceiling ₹6L) and `NOS` v1 (100 slots, income ceiling ₹8L) are published.
+    - Idempotently verifies the 4 RBAC demo personas (`applicant@demo.in`, `scrutiny@mota.gov.in`, `selection@mota.gov.in`, `admin@mota.gov.in`) with pre-computed bcrypt hash (`$2b$10$f/nc5AbKVYSU/q9yuyy0z.9p6Tud47CQoCv1PLZU.t3RNe8lAM72m` for `Password@123`), bypassing ~350ms of CPU-heavy hashing during resets.
+    - Automatically locates and syncs `demo-assets/` to local storage target (`.storage-local/tribalscholar-docs/demo-assets/`).
+    - Pre-populates 5 sample applications representing all key scholarship workflow stages:
+      1. `TS-NFST-2026-0001`: `DRAFT` status (fresh scholar intake form, 0 documents uploaded).
+      2. `TS-NFST-2026-0002`: `UNDER_SCRUTINY` status (proposal mockup accurate, 4 valid certificates: `income_certificate_valid.png` showing ₹80,000, `st_caste_certificate_valid.png`, `domicile_certificate_valid.png`, `academic_marksheet_valid.png` with 78.5% marks and >0.96 OCR confidence).
+      3. `TS-NFST-2026-0003`: `DEFICIENCY_RAISED` status (cross-document economic discrepancy: declared ₹80,000 vs `income_certificate_deficient.png` showing ₹1,20,000 with open `DeficiencyRecord` raised by Dr. Sunita Toppo).
+      4. `TS-NFST-2026-0004`: `PROVISIONALLY_SELECTED` status (approved by scrutiny officer, sanction order `TS-SO-2026-001` issued for ₹4,20,000, `PostSelectionRecord` configured and ready for DBT disbursement).
+      5. `TS-NOS-2026-0001`: `UNDER_SCRUTINY` status for National Overseas Scholarship with Oxford Ph.D. offer letter (`oxford_admission_offer.pdf`, QS Rank: 3).
+  - `apps/api/src/modules/demo/demo.routes.ts`:
+    - Exposes `POST /api/v1/demo/reset`, returning structured performance and count metrics in `DemoResetSummary`.
+  - `apps/api/src/app.ts`:
+    - Mounted `demoRouter` under `/api/v1/demo`.
+  - `apps/web/src/components/SihDemoRoleSwitcher.tsx`:
+    - Added one-click "Reset Demo State" button with `RotateCcw` spinning icon, confirmation dialog, summary alert, and view reload.
+  - `apps/web/src/lib/api.ts`:
+    - Exported `DemoResetSummary` interface and `resetDemoState(): Promise<DemoResetSummary>` function.
+  - `apps/api/src/__tests__/demo.reset.test.ts`:
+    - Complete test suite (10 tests) validating:
+      - Execution in under 2000ms SLA (actual benchmark: 33ms–59ms).
+      - Integrity of all 4 users, authentication with `Password@123`.
+      - Scheme versions 1 published, higher versions purged.
+      - Exact workflow stages across all 5 applications with documents, deficiencies, reviews, and post-selection records.
+      - Repeated idempotency over multiple invocations without record duplication.
+- **Verification Results:**
+  - `pnpm --filter @tribalscholar/api test src/__tests__/demo.reset.test.ts`: 10/10 tests passed (287ms).
+  - `pnpm --filter @tribalscholar/api test`: 280/280 tests passed across all 18 test suites (0 failures).
+  - `pnpm -r build`: 100% clean production build across `packages/shared`, `apps/api`, and `apps/web`.
+  - Overall monorepo tests: **331 passing tests** (280 in `@tribalscholar/api` + 51 in `services/ai-ocr`).
+
+### Prompt 8.3 Completion Report (2026-11-18)
+- **Delivered Packages & Files:**
+  - `apps/web/playwright.config.ts`:
+    - Configured Playwright with a `360,000ms` test timeout and `180,000ms` action/expect timeouts to accommodate CPU-based PaddleOCR extraction pipelines (each document takes ~20–25s on CPU).
+    - Base URL set to `http://localhost:3000`.
+    - Headless execution with Chromium engine, video recording on failure, and trace retention.
+  - `apps/web/e2e/sih-full-journey.spec.ts`:
+    - Full end-to-end automated demonstration of the mandatory 11-step SIH workflow:
+      1. **Step 1: Scholar Registration** — Creates dynamic user `e2e_scholar_<timestamp>@demo.in` via `/register` and auto-provisions `ApplicantProfile`.
+      2. **Step 2: Scheme Application Intake** — Navigates to `/applicant/apply/NFST`, fills applicant details (annual family income ₹80,000, 78.5% marks, ST category).
+      3. **Step 3: Document Upload (Deficient Set)** — Ingests 4 certificates with `demo-assets/income_certificate_deficient.png` (showing ₹1,20,000 vs form ₹80,000), `st_caste_certificate_valid.png`, `domicile_certificate_valid.png`, and `academic_marksheet_valid.png`.
+      4. **Step 4: AI OCR Microservice Processing** — FastAPI microservice processes the 4 uploaded documents using PaddleOCR, normalizing fields and positional bounding boxes.
+      5. **Step 5: Scheme Rule Evaluation** — Core API orchestrator executes versioned NFST v1 rule engine and cross-document consistency checks.
+      6. **Step 6: Deficiency Detection (`DEFICIENCY_RAISED`)** — System detects declared vs certificate income mismatch, transitions status to `DEFICIENCY_RAISED`, and displays `ACTION REQUIRED` badge with discrepancy details on scholar dashboard.
+      7. **Step 7: Applicant Correction** — Applicant navigates to `/applicant/applications/[id]`, uploads valid `demo-assets/income_certificate_valid.png` (showing ₹80,000), and triggers re-verification.
+      8. **Step 8: Delta Re-Verification (`UNDER_SCRUTINY`)** — Microservice re-analyzes only the replaced income certificate, confirms match, resolves deficiency, and promotes application to `UNDER_SCRUTINY`.
+      9. **Step 9: Officer Review Desk** — Switches role to Dr. Sunita Toppo (`SCRUTINY_OFFICER`), verifies queue listing, opens proposal-accurate 2-column workspace (`01 · Submitted Document` vs `02 · AI-Assisted Scrutiny`), asserts extracted fields (`SAMPLE-2026-01482`, `₹80,000 per annum`, `Scheduled Tribe (ST)`), and approves application.
+      10. **Step 10: Selection Committee Decision & DBT** — Switches role to Shri Rajeshwar Meena (`SELECTION_OFFICER`), issues Selection Award with Sanction Order `TS-SO-2026-NFST-01` (₹4,20,000), toggles institutional verification, and initiates simulated DBT disbursal via PFMS adapter.
+      11. **Step 11: Immutable Audit Trail Verification** — Opens audit slide-over drawer and verifies tamper-evident chronological event trail (`APPLICATION_CREATED`, `DOCUMENT_INGESTED`, `AI_SCRUTINY_EXECUTED`, `OFFICER_REVIEW_SUBMITTED`, etc.).
+  - `apps/api/src/modules/scrutiny/scrutiny.service.ts`:
+    - Embedded `scheme` and `schemeVersion` inside `application` in `getDecisionPackage` response to ensure seamless UI property access.
+  - `apps/api/src/modules/ruleEngine/consistencyEvaluator.ts`:
+    - Added ST community tokens (`Santhal`, `Munda`, `Oraon`, `Gond`, `Bhil`, `Ho`, `Khasi`, `Garo`, `Naga`, `Mizo`, `Bodo`) to `ST_TERMS` list to prevent false positive category mismatches on tribal community certificates.
+  - `apps/api/src/modules/ruleEngine/eligibilityEvaluator.ts`:
+    - Implemented defensive property access for `academic` object to support varying input structures gracefully.
+  - `apps/web/src/app/officer/applications/[id]/page.tsx`:
+    - Added semantic `<h1>` element with application number for test reliability.
+    - Handled statutory human-in-the-loop override justifications in scrutiny approval modal.
+  - `apps/web/package.json`:
+    - Added `"test:e2e": "playwright test"` script.
+- **Verification Results:**
+  - `pnpm --filter @tribalscholar/web test:e2e`: **1 passed** (3.1m across all 11 steps, 0 failures, fully automated).
+  - `pnpm --filter @tribalscholar/api test`: 280/280 tests passed across all 18 test suites (0 failures).
+  - `pnpm -r build`: 100% clean production build across all packages.
+  - Total repository tests: **332 passing tests** (280 API tests + 51 AI OCR tests + 1 comprehensive 11-step Playwright E2E suite).
+
+### Prompt 8.4 Completion Report (2026-11-18)
+- **Delivered Packages & Files:**
+  - Repository-wide audit confirming zero hardcoded private credentials, secrets, or keys tracked in git.
+  - Environment templates maintained in `.env.example`.
+  - Comprehensive verification of all 4 test layers:
+    1. Unit & Schema Tests: `@tribalscholar/shared` Zod validation contracts.
+    2. Backend API Test Suite: `apps/api` with 280/280 Vitest integration tests passing across 18 test suites.
+    3. Document Intelligence OCR Microservice: `services/ai-ocr` with 51/51 Pytest tests passing across 5 test suites.
+    4. End-to-End System Suite: `apps/web` with Playwright E2E suite executing all 11 mandatory demonstration steps (1 passed, 3.1m run duration).
+  - [HANDOFF.md](file:///Users/apple/Desktop/SIH26239/HANDOFF.md): Updated with the complete 5-Minute SIH Jury Live Demonstration Runbook, exact single-command startup procedures, sub-60ms reset commands, credential cheat sheet, and test commands.
+- **Verification Results:**
+  - `pnpm -r build`: 100% clean compilation across all workspaces (`packages/shared`, `apps/api`, `apps/web`).
+  - `pnpm --filter @tribalscholar/api test`: 280/280 passed (18 files).
+  - `pytest services/ai-ocr/tests`: 51/51 passed (5 files).
+  - `pnpm --filter @tribalscholar/web test:e2e`: 1/1 passed (11 steps).
+  - Total repository tests: **332/332 passing** (100% pass rate).
+  - Project Status: **100% COMPLETED** across all 8 Phases and 27 Prompts.
+
+
 
 

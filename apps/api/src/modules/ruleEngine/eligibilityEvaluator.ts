@@ -468,6 +468,16 @@ export function buildEvaluationContext(
     (form.academic as Record<string, unknown> | undefined) ||
     (form as Record<string, unknown>);
 
+  if (typeof academic === 'object' && academic !== null) {
+    if (academic.pgMarksPercentage === undefined && form.qualifyingPercentage !== undefined) {
+      academic.pgMarksPercentage = Number(form.qualifyingPercentage);
+    }
+  }
+
+  if (profile.aadhaarVerified === undefined && form.aadhaarVerified !== undefined) {
+    profile.aadhaarVerified = Boolean(form.aadhaarVerified);
+  }
+
   const unified: Record<string, unknown> = {
     ...profile,
     ...form,
