@@ -46,6 +46,9 @@ describe('Schemes & Versioned Rule Engine Routes (/api/v1/schemes)', () => {
     // Clean up created versions and their audit logs
     const versionIdsToClean = [createdVersionId, clonedVersionId].filter(Boolean) as string[];
     for (const vId of versionIdsToClean) {
+      await prisma.application.deleteMany({
+        where: { schemeVersionId: vId },
+      });
       await prisma.auditLog.deleteMany({
         where: {
           OR: [
@@ -58,6 +61,11 @@ describe('Schemes & Versioned Rule Engine Routes (/api/v1/schemes)', () => {
         where: { id: vId },
       });
     }
+    // Restore published state of base v1 versions
+    await prisma.schemeVersion.updateMany({
+      where: { versionNumber: 1 },
+      data: { isPublished: true },
+    });
   });
 
   // ============================================================================

@@ -31,3 +31,5 @@ Thumbs.db
 # Docker volumes / logs
 *.log
 docker_data/
+.storage-local/
+uploads/

@@ -56,9 +56,9 @@ describe('Audit Trail Service & Route Scoping Integration Tests', () => {
     applicant2Token = app2Register.body.accessToken || app2Register.body.data.accessToken;
     applicant2Id = app2Register.body.user.id || app2Register.body.data.user.id;
 
-    // 3. Find published scheme version for creating applications
+    // 3. Find permanent seed scheme version (versionNumber: 1) for creating applications
     const schemeVersion = await prisma.schemeVersion.findFirst({
-      where: { isPublished: true },
+      where: { versionNumber: 1 },
       include: { scheme: true },
     });
 

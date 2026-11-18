@@ -14,9 +14,9 @@ describe('Phase 2 End-to-End Integration Suite', () => {
   let testAppId: string;
 
   beforeAll(async () => {
-    // 1. Fetch published scheme for test application
+    // 1. Fetch permanent seed scheme for test application
     const schemeVersion = await prisma.schemeVersion.findFirst({
-      where: { isPublished: true },
+      where: { versionNumber: 1 },
       include: { scheme: true },
     });
 

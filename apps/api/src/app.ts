@@ -10,6 +10,7 @@ import { authRouter } from './modules/auth/auth.routes.js';
 import { auditRouter } from './modules/audit/audit.routes.js';
 import { integrationsRouter } from './modules/integrations/integrations.routes.js';
 import { schemesRouter } from './modules/schemes/schemes.routes.js';
+import { applicantRouter, applicationsRouter } from './modules/applications/applications.routes.js';
 
 export function createApp(): Express {
   const app: Express = express();
@@ -64,6 +65,8 @@ export function createApp(): Express {
   app.use('/api/v1/audit', auditRouter);
   app.use('/api/v1/integrations', integrationsRouter);
   app.use('/api/v1/schemes', schemesRouter);
+  app.use('/api/v1/applicant', applicantRouter);
+  app.use('/api/v1/applications', applicationsRouter);
 
   // 4. Fallback 404 & Global Error Handling
   app.use(notFoundHandler);

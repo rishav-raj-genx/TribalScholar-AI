@@ -38,12 +38,14 @@ enum ApplicationStatus {
 enum DocumentType {
   AADHAAR_CARD
   CASTE_CERTIFICATE
+  ST_CASTE_CERTIFICATE
   INCOME_CERTIFICATE
   DOMICILE_CERTIFICATE
   MARKSHEET_10TH
   MARKSHEET_12TH
   MARKSHEET_UG
   MARKSHEET_PG
+  ACADEMIC_MARKSHEET
   ADMISSION_OFFER_LETTER
   BONAFIDE_CERTIFICATE
   FEE_RECEIPT
@@ -226,6 +228,8 @@ model ApplicationDocument {
   mimeType              String
   s3Key                 String
   s3Bucket              String
+  version               Int                @default(1)
+  isCurrent             Boolean            @default(true)
   verificationStatus    VerificationStatus @default(PENDING)
   ocrExtractedFields    Json?
   ocrConfidence         Float?
@@ -237,6 +241,7 @@ model ApplicationDocument {
   deficiencies          DeficiencyRecord[]
 
   @@index([applicationId, documentType])
+  @@index([applicationId, isCurrent])
   @@index([verificationStatus])
 }
 

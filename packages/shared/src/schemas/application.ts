@@ -1,12 +1,15 @@
 import { z } from 'zod';
 import {
   ApplicationStatus,
+  DocumentType,
   ReviewDecision,
   SchemeCode,
+  VerificationStatus,
 } from '../enums.js';
+import { schemeSchema, schemeVersionSchema } from './scheme.js';
 
 export const applicantProfileSchema = z.object({
-  dateOfBirth: z.string().datetime().or(z.date()),
+  dateOfBirth: z.string().datetime().or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).or(z.date()),
   gender: z.string().min(1),
   casteCommunity: z.string().min(1),
   subTribe: z.string().optional(),
@@ -18,14 +21,16 @@ export const applicantProfileSchema = z.object({
   pincode: z.string().min(6).max(6),
   bankIfsc: z.string().optional(),
   bankName: z.string().optional(),
+  aadhaarNumberHash: z.string().optional(),
+  bankAccountNumberHash: z.string().optional(),
 });
 
 export type ApplicantProfileInput = z.infer<typeof applicantProfileSchema>;
 
 export const createApplicationSchema = z.object({
   schemeCode: z.nativeEnum(SchemeCode),
-  schemeVersionId: z.string().uuid(),
-  formData: z.record(z.string(), z.unknown()),
+  schemeVersionId: z.string().uuid().optional(),
+  formData: z.record(z.string(), z.unknown()).optional().default({}),
 });
 
 export type CreateApplicationInput = z.infer<typeof createApplicationSchema>;
@@ -36,6 +41,12 @@ export const updateApplicationSchema = z.object({
 });
 
 export type UpdateApplicationInput = z.infer<typeof updateApplicationSchema>;
+
+export const updateApplicationFormSchema = z.object({
+  formData: z.record(z.string(), z.unknown()),
+});
+
+export type UpdateApplicationFormInput = z.infer<typeof updateApplicationFormSchema>;
 
 export const raiseDeficiencySchema = z.object({
   applicationId: z.string().uuid(),
@@ -65,3 +76,49 @@ export const submitOfficerReviewSchema = z.object({
 });
 
 export type SubmitOfficerReviewInput = z.infer<typeof submitOfficerReviewSchema>;
+
+
+export const applicationDocumentSchema = z.object({
+  id: z.string().uuid(),
+  applicationId: z.string().uuid(),
+  documentType: z.nativeEnum(DocumentType),
+  fileName: z.string().min(1),
+  fileSize: z.number().int().nonnegative(),
+  mimeType: z.string().min(1),
+  s3Key: z.string().min(1),
+  s3Bucket: z.string().min(1),
+  version: z.number().int().positive().default(1),
+  isCurrent: z.boolean().default(true),
+  verificationStatus: z.nativeEnum(VerificationStatus).default(VerificationStatus.PENDING),
+  ocrExtractedFields: z.record(z.string(), z.unknown()).nullable().optional(),
+  ocrConfidence: z.number().nullable().optional(),
+  crossDocValidation: z.record(z.string(), z.unknown()).nullable().optional(),
+  rejectionReason: z.string().nullable().optional(),
+  uploadedAt: z.union([z.string().datetime(), z.date()]),
+  updatedAt: z.union([z.string().datetime(), z.date()]),
+});
+
+export type ApplicationDocumentDTO = z.infer<typeof applicationDocumentSchema>;
+export type ApplicationDocument = ApplicationDocumentDTO;
+
+export const applicationSchema = z.object({
+  id: z.string().uuid(),
+  applicationNumber: z.string().min(1),
+  applicantId: z.string().uuid(),
+  schemeId: z.string().uuid(),
+  schemeVersionId: z.string().uuid(),
+  status: z.nativeEnum(ApplicationStatus).default(ApplicationStatus.DRAFT),
+  formData: z.record(z.string(), z.unknown()),
+  meritScore: z.number().nullable().optional(),
+  ruleEvaluationResults: z.unknown().nullable().optional(),
+  submittedAt: z.union([z.string().datetime(), z.date()]).nullable().optional(),
+  verifiedAt: z.union([z.string().datetime(), z.date()]).nullable().optional(),
+  createdAt: z.union([z.string().datetime(), z.date()]),
+  updatedAt: z.union([z.string().datetime(), z.date()]),
+  documents: z.array(applicationDocumentSchema).optional(),
+  scheme: schemeSchema.optional(),
+  schemeVersion: schemeVersionSchema.optional(),
+});
+
+export type ApplicationDTO = z.infer<typeof applicationSchema>;
+export type Application = ApplicationDTO;

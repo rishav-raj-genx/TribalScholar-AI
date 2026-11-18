@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
+import multer from 'multer';
 import { ZodError } from 'zod';
 import { Prisma } from '@prisma/client';
 import { logger } from '../lib/logger.js';
@@ -88,7 +89,24 @@ export function errorHandler(
     return;
   }
 
-  // 2. Zod Schema Validation Error
+  // 2. Multer Upload Error
+  if (err instanceof multer.MulterError) {
+    logger.warn(`[${req.method} ${req.url}] Multer upload error: ${err.message}`, { code: err.code });
+    const message =
+      err.code === 'LIMIT_FILE_SIZE'
+        ? 'File size exceeds maximum allowed limit of 5 MB'
+        : `File upload error: ${err.message}`;
+
+    res.status(400).json({
+      status: 'error',
+      code: 'FILE_UPLOAD_ERROR',
+      message,
+      details: { multerCode: err.code },
+    });
+    return;
+  }
+
+  // 3. Zod Schema Validation Error
   if (err instanceof ZodError) {
     logger.warn(`[${req.method} ${req.url}] Zod validation failed`, { issues: err.issues });
     res.status(400).json({

@@ -28,6 +28,8 @@ const envSchema = z.object({
     .transform((val) => val === 'true')
     .or(z.boolean())
     .default(false),
+  STORAGE_DRIVER: z.enum(['s3', 'local']).default('s3'),
+  STORAGE_LOCAL_DIR: z.string().default('.storage-local'),
 
   // External Microservice URLs
   AI_OCR_URL: z.string().url().default('http://localhost:8000'),
