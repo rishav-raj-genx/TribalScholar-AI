@@ -98,6 +98,8 @@ importers:
         specifier: ^5.7.3
         version: 5.9.3
 
+  services/ai-ocr: {}
+
 packages:
 
   '@aws-sdk/checksums@3.1002.5':

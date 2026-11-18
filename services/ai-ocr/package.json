@@ -1,0 +1,9 @@
+{
+  "name": "@tribalscholar/ai-ocr",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PaddleOCR Document Intelligence Service",
+  "scripts": {
+    "test": ".venv/bin/pytest tests/ -c pytest.ini"
+  }
+}

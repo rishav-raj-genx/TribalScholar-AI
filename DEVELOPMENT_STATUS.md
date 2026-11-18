@@ -3,9 +3,9 @@
 ## 1. Project Overview & Tracking Summary
 - **Problem Statement ID:** SIH26239
 - **Project Title:** TribalScholar AI (Intelligent Scholarship & Fellowship Operations Platform)
-- **Current Phase:** Phase 4 - Intake Portal, Document Ingestion & AI OCR Service (COMPLETED)
-- **Next Phase:** Phase 5 - Selection, Post-Selection & Governance
-- **Status:** Phase 1, Phase 2, Phase 3, and Phase 4 Complete; Ready for Phase 5 (Selection & Governance)
+- **Current Phase:** Phase 5 - AI OCR Service, Selection & Governance (PHASE 5 AI OCR COMPLETE)
+- **Next Phase:** Phase 6 - Frontend Web Application, Officer Scrutiny & Selection Governance
+- **Status:** Phase 1, Phase 2, Phase 3, Phase 4, and Phase 5 AI OCR Microservice Complete (43/43 tests passing)
 
 ---
 
@@ -53,7 +53,18 @@
 
 ---
 
-## 6. High-Level Multi-Phase Master Roadmap
+## 6. Phase 5 Tracking Table: AI OCR Microservice & Document Intelligence
+
+| Prompt ID | Task Description | Status | Key Deliverables & Files |
+| :--- | :--- | :--- | :--- |
+| **5.1** | **AI OCR Microservice Initialization, Pydantic v2 Contracts, Hardware Fallback & API Key Auth** | **COMPLETED** | `services/ai-ocr/requirements.txt`, `services/ai-ocr/app/config.py`, `services/ai-ocr/app/schemas.py`, `services/ai-ocr/app/ocr_engine.py`, `services/ai-ocr/app/middleware.py`, `services/ai-ocr/app/main.py`, `services/ai-ocr/tests/test_health.py` |
+| **5.2** | **PaddleOCR Pipeline, Image Preprocessing & MoTA Document Classifier** | **COMPLETED** | `services/ai-ocr/app/ocr_engine.py`, `services/ai-ocr/app/classifier.py`, `services/ai-ocr/app/schemas.py`, `services/ai-ocr/tests/test_classifier.py` |
+| **5.3** | **Structured Field Extractor, Positional Anchors & Proposal Evidence Contract** | **COMPLETED** | `services/ai-ocr/app/extractor.py`, `services/ai-ocr/app/schemas.py`, `services/ai-ocr/app/ocr_engine.py`, `services/ai-ocr/tests/test_extractor.py` |
+| **5.4** | **Document Intelligence API, Batch Consistency Analysis & Phase 5 AI OCR Handoff** | **COMPLETED** | `services/ai-ocr/app/analyzer.py`, `services/ai-ocr/app/main.py`, `services/ai-ocr/app/schemas.py`, `services/ai-ocr/tests/test_analyze_api.py`, `DEVELOPMENT_STATUS.md`, `HANDOFF.md` |
+
+---
+
+## 7. High-Level Multi-Phase Master Roadmap
 
 ### Phase 1: Foundation, Infrastructure & Core Engine (COMPLETED)
 - [x] **Prompt 1.1:** Monorepo, base TypeScript, Docker Compose (Postgres 16, MinIO), continuity docs.
@@ -79,15 +90,21 @@
 - [x] **Prompt 4.3:** Multipart Document Ingestion Controller, Object Storage persistence, replacement versioning (`version`, `isCurrent`), and controlled document viewing/streaming.
 - [x] **Prompt 4.4:** Shared DTO Contracts (`Application`, `ApplicationDocument`, `SchemeVersion`, `Scheme`), regression test suite (218 tests passing across 13 suites), contract alignment, and Phase 4 handoff to Phase 5.
 
-### Phase 5: Selection, Post-Selection & Governance
-- Selection committee ranking, merit lists, and quota allocation.
-- Provisional award letters and sanction order generator.
-- Post-selection milestone tracking (joining report, fee disbursement, annual progress).
-- Complete immutable audit log viewer and compliance reporting.
+### Phase 5: AI OCR Microservice & Document Intelligence (COMPLETED)
+- [x] **Prompt 5.1:** AI OCR Service initialization, Pydantic v2 schemas matching @tribalscholar/shared contracts, PaddleOCR engine wrapper with CPU/deterministic extraction fallback, internal API key middleware, and test suite.
+- [x] **Prompt 5.2:** PDF-to-image conversion (PyMuPDF), OpenCV image pre-processing (CLAHE contrast normalization, grayscale), PaddleOCR line-level execution engine (bounding boxes, confidences), and Document Classifier for prescribed MoTA certificates.
+- [x] **Prompt 5.3:** Structured field extractor parsing OCR lines into typed fields with exact evidence metadata matching proposal UI mockup (`value`, `status`, `confidence`, `evidence`: `{ page, fieldLabel, bbox, rawSnippet }`).
+- [x] **Prompt 5.4:** Document Intelligence API exposing `POST /internal/v1/ocr/analyze` and `POST /internal/v1/ocr/analyze-batch`, multi-document cross-certificate consistency checks, clean 4/4 set verification, deficiency detection, and Phase 5 handoff.
+
+### Phase 6: Frontend Web Application, Officer Scrutiny & Selection Governance
+- Intake Portal & Scholar Self-Service Application Lifecycle (Registration, Profile, Form, Uploads, Replacement Versioning, Status Timeline).
+- Scrutiny Officer Verification Workspace (Side-by-side certificate viewer, extracted field evidence verification, deficiency tagging & return-to-applicant workflow).
+- Selection Committee Ranking & Quota Allocation (Merit list generator, PVTG / gender / state quotas, provisional award letters, sanction orders).
+- Post-Selection Milestones, DBT Disbursement Orchestration & Statutory Compliance Audit Exporter.
 
 ---
 
-## 7. Prompt Completion Reports
+## 8. Prompt Completion Reports
 
 ### Prompt 1.1 Completion Report (2026-11-17)
 - Initialized pnpm monorepo workspace, root `package.json`, `tsconfig.base.json`.
@@ -308,3 +325,129 @@
 - **Verification Results:**
   - `pnpm -r build`: Exited 0 (clean compilation across all workspace packages).
   - `pnpm --filter @tribalscholar/api test`: 218/218 tests passed across 13 suites.
+
+
+### Prompt 5.1 Completion Report (2026-11-18)
+- **Delivered Packages & Files:**
+  - `services/ai-ocr/requirements.txt`: Python package specification (`fastapi`, `uvicorn`, `pydantic`, `pydantic-settings`, `python-multipart`, `pillow`, `numpy`, `opencv-python-headless`, `pymupdf`, `paddleocr`, `paddlepaddle`, `pytest`, `httpx`, `python-dotenv`).
+  - `services/ai-ocr/pyproject.toml` & `services/ai-ocr/pytest.ini`: Python environment, project metadata, and pytest configuration with strict import resolution (`pythonpath = . app`).
+  - `services/ai-ocr/app/config.py`: Pydantic v2 `BaseSettings` reading environment variables with defaults for host, port, internal API key, PaddleOCR language, and hardware acceleration options.
+  - `services/ai-ocr/app/schemas.py`: Pydantic v2 domain schemas mirroring `@tribalscholar/shared` contracts:
+    - Enums: `DocumentType`, `CrossDocCheckStatus`.
+    - Spatial & Field Models: `OcrBoundingBox`, `OcrFieldExtraction`, `DocValue`, `CrossDocCheckItem`.
+    - Payload & Diagnostics: `OcrEvidencePayload`, `CrossDocEvidenceReport`, `HealthResponse`.
+    - API DTOs: `OcrExtractionRequest`, `OcrExtractionResponse`, `CrossDocValidationRequest`, `CrossDocValidationResponse`.
+  - `services/ai-ocr/app/ocr_engine.py`: `OcrEngineWrapper` providing:
+    - CPU/GPU auto-detection and graceful PaddleOCR initialization.
+    - PDF multi-page rendering via PyMuPDF (`pymupdf`) and image decoding via Pillow.
+    - Deterministic synthetic extraction fallback for offline and CPU environments (ST Caste Certificate, Income Certificate, Marksheet, Aadhaar Card).
+    - Diagnostic status reporting (`is_healthy`, `get_engine_info`).
+  - `services/ai-ocr/app/middleware.py`: `InternalApiKeyMiddleware` enforcing `X-Internal-Api-Key` on private routes with 401 for missing headers and 403 for invalid keys, while exempting OpenAPI docs (`/docs`, `/redoc`, `/openapi.json`) and liveness probes (`/healthz`, `/ping`).
+  - `services/ai-ocr/app/main.py`: FastAPI microservice entrypoint with CORS, structured logging, lifespan hooks, `/healthz` container probe, and authenticated `/health` / `/api/v1/health` diagnostic routes.
+  - `services/ai-ocr/tests/test_health.py`: 9 comprehensive test cases verifying:
+    - Public container liveness probe (`GET /healthz`) returns 200 without API key.
+    - Missing `X-Internal-Api-Key` returns 401 Unauthorized.
+    - Invalid `X-Internal-Api-Key` returns 403 Forbidden.
+    - Valid `X-Internal-Api-Key` returns 200 with structured `HealthResponse`.
+    - Namespaced `/api/v1/health` authentication.
+    - Root index route security.
+    - OCR engine wrapper diagnostics.
+    - Deterministic ST Caste Certificate and Income Certificate extractions.
+  - `services/ai-ocr/package.json`: pnpm workspace integration enabling `pnpm --filter @tribalscholar/ai-ocr test`.
+  - `.env.example`: Added `INTERNAL_API_KEY` configuration.
+- **Verification Results:**
+  - `pytest services/ai-ocr/tests/test_health.py`: 9/9 passed in 1.75s.
+  - `pnpm --filter @tribalscholar/ai-ocr test`: 9/9 passed in 1.89s.
+
+
+### Prompt 5.2 Completion Report (2026-11-18)
+- **Delivered Packages & Files:**
+  - `services/ai-ocr/app/schemas.py`: Enhanced `DocumentType` with `OVERSEAS_ADMISSION_LETTER` and `RESEARCH_PROPOSAL`; introduced `OcrLine` (text, confidence, pageNumber, boundingBox, polygon) and `ClassificationResult` (predictedType, confidence, isMatch, evidenceTokens, scores, rejectionReason).
+  - `services/ai-ocr/app/ocr_engine.py`:
+    - Implemented `convert_pdf_to_images(file_bytes, dpi=200)` using PyMuPDF (`pymupdf`) for crisp multi-page raster rendering.
+    - Implemented `preprocess_image(image, enhance_contrast=True)` using OpenCV (grayscale conversion, CLAHE adaptive histogram equalization, min-max dynamic range normalization, and 3-channel RGB conversion).
+    - Wrapped `PaddleOCR(use_angle_cls=True, lang='en')` returning normalized line-level bounding boxes and confidence scores.
+    - Implemented `extract_lines(file_bytes, filename, preprocess=True)` returning structured `List[OcrLine]`.
+  - `services/ai-ocr/app/classifier.py`:
+    - Implemented rule-based + weighted token evidence classifier with primary keywords (3.0 pts), secondary keywords (1.5 pts), and negative penalties (-2.0 pts).
+    - Classifies canonical MoTA document types: `INCOME_CERTIFICATE`, `ST_CASTE_CERTIFICATE`, `DOMICILE_CERTIFICATE`, `ACADEMIC_MARKSHEET`, `OVERSEAS_ADMISSION_LETTER`, `RESEARCH_PROPOSAL`.
+    - Handles aliases/equivalences (`ST_CASTE_CERTIFICATE` / `CASTE_CERTIFICATE`, `OVERSEAS_ADMISSION_LETTER` / `ADMISSION_OFFER_LETTER`, `RESEARCH_PROPOSAL` / `SYNOPSIS_RESEARCH_PROPOSAL`).
+    - Detects wrong document uploads and mismatched files with structured `rejectionReason`.
+    - Flags blurred, illegible, or noisy documents as `DocumentType.OTHER` with low confidence.
+  - `services/ai-ocr/tests/test_classifier.py`: 14 comprehensive test cases covering:
+    - Accurate classification of Income Certificate, ST Caste Certificate, Domicile Certificate, Academic Marksheet, Overseas Admission Letter, and Research Proposal.
+    - Mismatched document detection (rejecting Marksheet uploaded as Income Certificate).
+    - Blurred/gibberish text rejection.
+    - Empty and blank string handling.
+    - Line-level classification from `OcrLine` tokens.
+    - OpenCV CLAHE image pre-processing pipeline verification.
+    - PyMuPDF in-memory multi-page PDF rendering.
+    - End-to-end real PaddleOCR line detection, bounding box normalization, and classification on rendered PDF.
+- **Verification Results:**
+  - `pytest services/ai-ocr/tests/test_classifier.py`: 14/14 passed in 3.87s (100% pass rate).
+  - `pytest services/ai-ocr/tests`: 23/23 passed in 4.08s.
+  - `pnpm --filter @tribalscholar/ai-ocr test`: 23/23 passed in 4.03s.
+  - `pnpm -r build`: Clean TypeScript compilation (zero errors).
+
+
+### Prompt 5.3 Completion Report (2026-11-18)
+- **Delivered Packages & Files:**
+  - `services/ai-ocr/app/schemas.py`: Introduced `FieldEvidence` (page, fieldLabel, bbox, rawSnippet, evidenceString) and `ExtractedField` (fieldName, value, status, confidence, evidence, rawText), and enriched `OcrFieldExtraction` with verification status and exact field evidence metadata.
+  - `services/ai-ocr/app/extractor.py`:
+    - Implemented `StructuredFieldExtractor` executing regex + positional anchor extraction across multi-page document lines.
+    - Supported extraction targets:
+      - `applicantName` with title/prefix stripping and line-by-line anchor discovery.
+      - `category` normalized to `Scheduled Tribe (ST)` from tribal community designations.
+      - `annualFamilyIncome` with numeric normalization (`₹80,000 per annum` -> `80000` int/float).
+      - `issuingAuthority` parsing competent revenue authorities, tehsildars, SDOs, DMs, and universities.
+      - `certificateRef` matching certificate/registration numbers (`SAMPLE-2026-01482`, `CERT/JH/2024/ST/09842`).
+      - `issueDate` extracting formatted dates (`14 FEB 2026`, `20 JAN 2024`).
+      - `stateDomicile` matching Indian state boundaries (`Jharkhand`, `Odisha`, etc.).
+      - `percentageMarks` extracting normalized academic percentages (`78.4`).
+      - Overseas admission letter fields (`institutionName`, `courseName`, `tuitionFees`, `casNumber`).
+    - Emits exact evidence format matching SIH proposal UI mockup: `page 1 · name field`, `page 1 · income field`, `page 1 · issuer field`, `page 1 · ref field`, `page 1 · date field`, `page 1 · state field`, `page 1 · marks field`.
+    - Implemented multi-line positional anchor extraction matching adjacent lines when labels and values are partitioned across separate visual lines.
+  - `services/ai-ocr/app/ocr_engine.py`: Integrated `StructuredFieldExtractor` into `OcrEngineWrapper.extract_document`, mapping structured field outputs into `OcrEvidencePayload.extractedFields`.
+  - `services/ai-ocr/tests/test_extractor.py`: 13 comprehensive test cases covering:
+    - Income Certificate extraction with exact proposal mockup fields.
+    - Currency and numeric income normalization (`₹80,000 per annum`, `Rs. 80,000/-`, `INR 80,000.00`).
+    - ST Caste Certificate extraction.
+    - Domicile Certificate extraction.
+    - Academic Marksheet percentage normalization.
+    - NOS Overseas Admission Letter extraction (CAS number, tuition fees, university).
+    - Multi-line positional anchor spatial extraction.
+    - Evidence metadata contract validation (`value`, `status`, `confidence`, `evidence`: `{ page, fieldLabel, bbox, rawSnippet }`).
+- **Verification Results:**
+  - `pytest services/ai-ocr/tests/test_extractor.py`: 13/13 passed in 0.05s.
+  - `pytest services/ai-ocr/tests`: 36/36 passed in 4.50s across 3 test suites.
+  - `pnpm --filter @tribalscholar/ai-ocr test`: 36/36 passed in 4.06s.
+  - `pnpm -r build`: Clean TypeScript compilation (zero errors).
+
+
+### Prompt 5.4 Completion Report (2026-11-18)
+- **Delivered Packages & Files:**
+  - `services/ai-ocr/app/schemas.py`: Defined comprehensive Pydantic v2 schemas:
+    - `AnalyzeDocumentRequest` & `AnalyzeDocumentResponse`: Single certificate analysis supporting `fileBase64`, `lines`, or `text`, expected document type, and `applicantContext`.
+    - `BatchAnalyzeRequest` & `BatchAnalyzeResponse`: Multi-document bundle analysis with summary statistics (`verifiedCount`, `deficientCount`), document results, bundle-wide deficiencies, and pairwise `crossDocChecks`.
+    - `FieldComparisonItem`: Form value vs extracted OCR value comparison with match boolean, status, confidence, and human-readable explanation.
+    - `CrossDocCheckItem`: Pairwise cross-certificate consistency check with source/target document types, fields, match status (`CONSISTENT`, `INCONSISTENT`, `SKIPPED`), and notes.
+  - `services/ai-ocr/app/analyzer.py`: Implemented `DocumentIntelligenceAnalyzer` (`document_analyzer` singleton):
+    - `analyze_document`: Resolves OCR lines from base64 files, pre-computed lines, or text; runs `document_classifier.verify_document_type`; extracts structured fields via `structured_extractor.extract_fields`; performs cross-field comparison against declared applicant form context (`applicantName`, `annualFamilyIncome`, `category`, `stateDomicile`); returns overall status (`VERIFIED` or `DEFICIENT`), deficiency reasons, field comparisons, and extracted fields with evidence metadata.
+    - `analyze_batch`: Iterates across document bundles, evaluates individual document validity, performs pairwise cross-document checks (cross-verifying `applicantName` across all uploaded certificates using tokenized set intersection, verifying declared income against verified income certificate, checking category against ST certificate, and verifying state domicile), and compiles overall bundle status (`VERIFIED` or `DEFICIENT`).
+  - `services/ai-ocr/app/main.py`: Exposed and secured internal intelligence endpoints:
+    - `POST /internal/v1/ocr/analyze`: Single document analysis with `AnalyzeDocumentRequest` / `AnalyzeDocumentResponse`.
+    - `POST /internal/v1/ocr/analyze-batch`: Multi-document bundle intelligence with `BatchAnalyzeRequest` / `BatchAnalyzeResponse`.
+    - Protected via `InternalApiKeyMiddleware` enforcing `X-Internal-Api-Key`.
+  - `services/ai-ocr/tests/test_analyze_api.py`: 7 comprehensive integration tests:
+    - `test_analyze_unauthorized_without_api_key`: Enforces 401 Unauthorized when `X-Internal-Api-Key` is missing or invalid.
+    - `test_analyze_single_income_certificate_clean`: Verifies proposal UI mockup values (`Sample Applicant`, `Scheduled Tribe (ST)`, `80000`, `Competent Revenue Authority`, `SAMPLE-2026-01482`, `14 FEB 2026`) and evidence strings (`page 1 · name field`, `page 1 · income field`, etc.) yielding `VERIFIED` status.
+    - `test_analyze_batch_clean_4_of_4_set`: Verifies full 4/4 document bundle (`INCOME_CERTIFICATE`, `ST_CASTE_CERTIFICATE`, `DOMICILE_CERTIFICATE`, `ACADEMIC_MARKSHEET`) yielding `overallStatus="VERIFIED"`, `verifiedCount=4`, `deficientCount=0`, and consistent pairwise cross-doc checks.
+    - `test_analyze_deficient_income_mismatch`: Detects income discrepancies (e.g. certificate says ₹1,50,000 when declared income is ₹80,000), flagging `DEFICIENT` status and explicit deficiency reason.
+    - `test_analyze_deficient_blurred_certificate`: Flags blurred/illegible certificates as `DEFICIENT` and document type `OTHER`.
+    - `test_analyze_deficient_wrong_document_type`: Rejects mismatched uploads (e.g. Academic Marksheet uploaded where Income Certificate was expected) with structured rejection reason.
+    - `test_analyze_batch_deficient_set`: Validates that a bundle containing a mismatched certificate produces `overallStatus="DEFICIENT"`, records bundle-wide deficiencies, and isolates the deficient document.
+- **Verification Results:**
+  - `services/ai-ocr/.venv/bin/pytest services/ai-ocr/tests/test_analyze_api.py`: 7/7 passed in 2.59s.
+  - `services/ai-ocr/.venv/bin/pytest services/ai-ocr/tests`: 43/43 passed in 4.23s across 4 test suites (`test_analyze_api.py`, `test_classifier.py`, `test_extractor.py`, `test_health.py`).
+  - `pnpm --filter @tribalscholar/ai-ocr test`: 43/43 passed in 4.43s.
+  - `pnpm -r build`: Clean TypeScript compilation across `packages/shared` and `apps/api` (0 errors).

@@ -1,10 +1,10 @@
-# TribalScholar AI: Cross-Chat Continuity & Phase 5 Transition Guide
+# TribalScholar AI: Cross-Chat Continuity & Phase 6 Transition Guide
 
 ## 1. Executive Summary & Current Status
-Phase 1 (Foundation, Infrastructure & Core Engine), Phase 2 (Backend Security, Governance, Audit Trail & External Integrations), Phase 3 (Deterministic Scheme Rule Engine, Cross-Document Consistency Evaluator, Versioned Scheme Management API & Simulation Verifications), and Phase 4 (Intake Portal, Document Ingestion, Version History & Shared Domain Contracts) of TribalScholar AI (SIH26239) are **100% COMPLETED**.  
-Phase 5 (Selection, Post-Selection & Governance) is **READY TO COMMENCE**.
+Phase 1 (Foundation, Infrastructure & Core Engine), Phase 2 (Backend Security, Governance, Audit Trail & External Integrations), Phase 3 (Deterministic Scheme Rule Engine, Cross-Document Consistency Evaluator, Versioned Scheme Management API & Simulation Verifications), Phase 4 (Intake Portal, Document Ingestion, Version History & Shared Domain Contracts), and Phase 5 (AI OCR Microservice, Document Intelligence & Cross-Document Verification) of TribalScholar AI (SIH26239) are **100% COMPLETED**.  
+Phase 6 (Frontend Web Application, Officer Scrutiny & Selection Governance) is **READY TO COMMENCE**.
 
-All backing infrastructure (PostgreSQL 16 and MinIO S3), cross-package domain contracts, Prisma database models, schema migrations, idempotent seed data, Express API entrypoint, centralized error handling, JWT authentication, role-based access control, transactional immutable audit logging, external government adapters (DigiLocker, DBT, BHASHINI), sliding-window rate limiters, reverse proxy security headers, deterministic JSON Rule DSL eligibility evaluator, cross-document consistency evaluator, unified rule orchestrator, versioned scheme management & dry-run simulation APIs, edge-case test suites, S3/MinIO object storage with offline local fallback and file validation, applicant profile management, draft application intake lifecycle, multipart document replacement versioning & controlled viewing, and shared DTO contracts are fully operational and verified with 218 tests across 13 test suites.
+All backing infrastructure (PostgreSQL 16 and MinIO S3), cross-package domain contracts, Prisma database models, schema migrations, idempotent seed data, Express API entrypoint, centralized error handling, JWT authentication, role-based access control, transactional immutable audit logging, external government adapters (DigiLocker, DBT, BHASHINI), sliding-window rate limiters, reverse proxy security headers, deterministic JSON Rule DSL eligibility evaluator, cross-document consistency evaluator, unified rule orchestrator, versioned scheme management & dry-run simulation APIs, edge-case test suites, S3/MinIO object storage with offline local fallback and file validation, applicant profile management, draft application intake lifecycle, multipart document replacement versioning & controlled viewing, shared DTO contracts, and the standalone Python FastAPI PaddleOCR microservice with document intelligence endpoints are fully operational and verified with **261 passing tests** (218 in TypeScript API + 43 in Python AI OCR).
 
 ---
 
@@ -67,6 +67,36 @@ All backing infrastructure (PostgreSQL 16 and MinIO S3), cross-package domain co
 - [apps/api/src/__tests__/health.test.ts](file:///Users/apple/Desktop/SIH26239/apps/api/src/__tests__/health.test.ts): Health endpoint and error handler integration suite (8 tests).
 - [apps/api/vitest.config.ts](file:///Users/apple/Desktop/SIH26239/apps/api/vitest.config.ts): Vitest runner configuration with `fileParallelism: false` for strict PostgreSQL transaction isolation.
 
+### AI OCR Microservice & Document Intelligence (`services/ai-ocr`)
+- [services/ai-ocr/requirements.txt](file:///Users/apple/Desktop/SIH26239/services/ai-ocr/requirements.txt): Python dependencies (`fastapi`, `uvicorn`, `pydantic`, `python-multipart`, `pillow`, `numpy`, `opencv-python-headless`, `pymupdf`, `paddleocr`, `paddlepaddle`, `pytest`, `httpx`).
+- [services/ai-ocr/app/config.py](file:///Users/apple/Desktop/SIH26239/services/ai-ocr/app/config.py): Pydantic Settings loader reading `OCR_ENGINE`, `INTERNAL_API_KEY`, `DEBUG`, `PORT`, and runtime environment flags.
+- [services/ai-ocr/app/schemas.py](file:///Users/apple/Desktop/SIH26239/services/ai-ocr/app/schemas.py): Pydantic v2 schemas: `DocumentType` (canonical MoTA certificate types and aliases), `OcrLine` (text, confidence, pageNumber, boundingBox, polygon), `ClassificationResult`, `FieldEvidence` (page, fieldLabel, bbox, rawSnippet, evidenceString matching UI proposal mockup), `ExtractedField`, `AnalyzeDocumentRequest`, `AnalyzeDocumentResponse`, `BatchAnalyzeRequest`, `BatchAnalyzeResponse`, `FieldComparisonItem`, and `CrossDocCheckItem`.
+- [services/ai-ocr/app/middleware.py](file:///Users/apple/Desktop/SIH26239/services/ai-ocr/app/middleware.py): `InternalApiKeyMiddleware` enforcing `X-Internal-Api-Key` authentication on protected `/health` and `/internal/v1/*` routes while exempting `/healthz`, `/docs`, `/openapi.json`.
+- [services/ai-ocr/app/ocr_engine.py](file:///Users/apple/Desktop/SIH26239/services/ai-ocr/app/ocr_engine.py): `OcrEngineWrapper` providing:
+  - `convert_pdf_to_images()`: Multi-page high-resolution rasterization via PyMuPDF (`dpi=200`).
+  - `preprocess_image()`: OpenCV pipeline (grayscale, CLAHE adaptive histogram equalization, min-max contrast normalization).
+  - PaddleOCR execution wrapper dynamically handling CPU vs GPU hardware, PaddleX v3 vs classic result formats, line-level bounding box normalization, and fallback to synthetic deterministic extraction.
+- [services/ai-ocr/app/classifier.py](file:///Users/apple/Desktop/SIH26239/services/ai-ocr/app/classifier.py): Rule-based and weighted token evidence classifier classifying MoTA certificates (`INCOME_CERTIFICATE`, `ST_CASTE_CERTIFICATE`, `DOMICILE_CERTIFICATE`, `ACADEMIC_MARKSHEET`, `OVERSEAS_ADMISSION_LETTER`, `RESEARCH_PROPOSAL`), detecting mismatched/wrong document uploads, and flagging blurred/low-confidence documents.
+- [services/ai-ocr/app/extractor.py](file:///Users/apple/Desktop/SIH26239/services/ai-ocr/app/extractor.py): `StructuredFieldExtractor` executing regex + positional anchor extraction across multi-page document lines:
+  - `applicantName`: Title/prefix stripping and line-by-line anchor discovery.
+  - `category`: Normalization to `Scheduled Tribe (ST)`.
+  - `annualFamilyIncome`: Numeric currency normalization (`₹80,000 per annum` -> `80000`).
+  - `issuingAuthority`: Revenue authorities, tehsildars, SDOs, DMs, universities.
+  - `certificateRef`: Certificate and registration reference numbers (`SAMPLE-2026-01482`).
+  - `issueDate`: Formatted issue dates (`14 FEB 2026`).
+  - `stateDomicile`: Indian state names (`Jharkhand`, `Odisha`, etc.).
+  - `percentageMarks`: Academic percentage normalization (`78.4`).
+  - Overseas fields: Institution name, course name, tuition fees, CAS number.
+  - Formatted evidence strings: `page 1 · name field`, `page 1 · income field`, `page 1 · issuer field`, `page 1 · ref field`, `page 1 · date field`.
+- [services/ai-ocr/app/analyzer.py](file:///Users/apple/Desktop/SIH26239/services/ai-ocr/app/analyzer.py): `DocumentIntelligenceAnalyzer` orchestrator:
+  - `analyze_document()`: Decodes base64 file or accepts raw text/lines, verifies classification against expected type, extracts typed fields with evidence metadata, compares against applicant form context (`applicantName`, `annualFamilyIncome`, `category`, `stateDomicile`), and flags `status` (`VERIFIED` or `DEFICIENT`).
+  - `analyze_batch()`: Iterates across multi-certificate application bundles, performs pairwise cross-document consistency checks (name token intersection, income limit compliance, state domicile match), and compiles summary metrics (`verifiedCount`, `deficientCount`, `overallStatus`).
+- [services/ai-ocr/app/main.py](file:///Users/apple/Desktop/SIH26239/services/ai-ocr/app/main.py): FastAPI application mounting `/healthz` (liveness), `/health` (hardware diagnostic), `POST /internal/v1/ocr/analyze`, and `POST /internal/v1/ocr/analyze-batch`.
+- [services/ai-ocr/tests/test_health.py](file:///Users/apple/Desktop/SIH26239/services/ai-ocr/tests/test_health.py): Health and API key authentication tests (9 tests).
+- [services/ai-ocr/tests/test_classifier.py](file:///Users/apple/Desktop/SIH26239/services/ai-ocr/tests/test_classifier.py): Document classification, CLAHE pre-processing, and wrong-document rejection tests (14 tests).
+- [services/ai-ocr/tests/test_extractor.py](file:///Users/apple/Desktop/SIH26239/services/ai-ocr/tests/test_extractor.py): Structured field extraction, numeric parsing, and evidence string tests (13 tests).
+- [services/ai-ocr/tests/test_analyze_api.py](file:///Users/apple/Desktop/SIH26239/services/ai-ocr/tests/test_analyze_api.py): Intelligence API integration tests validating clean 4/4 set, income mismatch, blurred rejection, and batch cross-checking (7 tests).
+
 ### Project Continuity Documentation
 - [PROJECT_CONTEXT.md](file:///Users/apple/Desktop/SIH26239/PROJECT_CONTEXT.md): Master hackathon brief, MoTA schemes, and locked architecture.
 - [ARCHITECTURE.md](file:///Users/apple/Desktop/SIH26239/ARCHITECTURE.md): Architecture topology diagram, data flows, and security policies.
@@ -94,7 +124,7 @@ pnpm -r build
 # packages/shared: compiled cleanly
 # apps/api: compiled cleanly (0 errors)
 
-# Unit & Integration Tests (218 passed across 13 suites)
+# Core API Unit & Integration Tests (218 passed across 13 suites)
 pnpm --filter @tribalscholar/api test
  ✓ src/__tests__/applications.documents.test.ts (23 tests)
  ✓ src/__tests__/applications.intake.test.ts (22 tests)
@@ -110,6 +140,16 @@ pnpm --filter @tribalscholar/api test
  ✓ src/__tests__/audit.test.ts (15 tests)
  ✓ src/__tests__/auth.test.ts (18 tests)
 
+# AI OCR Microservice Unit & Integration Tests (43 passed across 4 suites)
+pnpm --filter @tribalscholar/ai-ocr test
+# or: services/ai-ocr/.venv/bin/pytest services/ai-ocr/tests -c services/ai-ocr/pytest.ini
+ ✓ tests/test_analyze_api.py (7 tests)
+ ✓ tests/test_classifier.py (14 tests)
+ ✓ tests/test_extractor.py (13 tests)
+ ✓ tests/test_health.py (9 tests)
+
+# Total Tests Passing across Workspace: 261 passed (100% pass rate)
+
 # Database Seeding Execution
 pnpm --filter @tribalscholar/api prisma:seed
 # Executed idempotently with zero errors
@@ -117,29 +157,41 @@ pnpm --filter @tribalscholar/api prisma:seed
 
 ---
 
-## 5. Phase 5 Handoff & Selection Architecture Roadmap
+## 5. Phase 6 Handoff: Frontend Web App, Scrutiny Desk & Governance Integration
 
-### Overview of Completed Phase 4 Milestones:
-1. **Document Ingestion & Storage Adapter (Prompt 4.1):** Connected Core API to S3/MinIO bucket `tribalscholar-docs` with `uploadDocumentBuffer()`, `getDocumentStream()`, `getPresignedViewUrl()`, offline `LocalStorageAdapter` fallback, and binary magic bytes validation for PDF, PNG, and JPEG (5 MB limit).
-2. **Applicant Profile & Draft Intake API (Prompt 4.2):** Implemented profile management (`GET`/`PUT /api/v1/applicant/profile`), draft application creation (`POST /api/v1/applications`) with auto-generated numbers (`TS-NFST-2026-0001`), state-guarded form data updates (`PATCH /api/v1/applications/:id/form`), and ownership-scoped retrieval with status timeline.
-3. **Multipart Document Upload, Replacement Versioning & Controlled Viewing (Prompt 4.3):** Implemented multipart uploads (`POST /api/v1/applications/:id/documents`) with automatic version increments (`version: max + 1`), marking prior versions `isCurrent: false`, audit logging, and presigned/streaming view (`GET /api/v1/applications/:id/documents/:docId/view`).
-4. **Shared Domain Contracts, Regression Testing & Phase 4 Transition (Prompt 4.4):** Exported shared DTO contracts and Zod schemas for `Application`, `ApplicationDocument`, `Scheme`, and `SchemeVersion` in `packages/shared`, established Vitest PostgreSQL runner isolation (`fileParallelism: false`), and verified full regression suite (218 passing tests).
+### Overview of Completed Phase 5 Milestones:
+1. **AI OCR Microservice Architecture (Prompt 5.1):** Initialized FastAPI microservice with Pydantic v2 schemas mirroring `@tribalscholar/shared`, dynamic CPU/GPU PaddleOCR engine wrapper with deterministic fallback, and `X-Internal-Api-Key` middleware.
+2. **MoTA Document Classifier & Preprocessing (Prompt 5.2):** Implemented PyMuPDF PDF-to-image rasterization, OpenCV CLAHE contrast enhancement, line-level bounding box normalization, and weighted token classifier for canonical MoTA certificates with wrong-document rejection.
+3. **Structured Field Extractor & Evidence Metadata (Prompt 5.3):** Implemented regex + spatial positional anchor extraction for applicant name, category, income (numeric normalization to `80000`), issuer, reference, date, and percentage marks with exact proposal evidence format (`page 1 · name field`, `page 1 · income field`).
+4. **Document Intelligence API & Cross-Document Consistency (Prompt 5.4):** Exposed `POST /internal/v1/ocr/analyze` and `POST /internal/v1/ocr/analyze-batch`, validating clean 4/4 document sets (`Sample Applicant`, `Scheduled Tribe (ST)`, `₹80,000 / year`, `Competent Revenue Authority`), detecting income/caste/domicile discrepancies, and rejecting blurred or wrong uploads.
 
-### Immediate Objectives for Phase 5 (Selection, Post-Selection & Governance):
-1. **Merit Ranking Engine & Quota Allocator (Prompt 5.1):**
-   - Calculate merit scores from academic percentages and scoring criteria.
-   - Rank applications per scheme (`NFST` and `NOS`) against available slots.
-   - Enforce reservation quotas (female representation, PVTG, state distribution, disciplines).
-   - Implement tie-breaking rules and generate draft merit lists.
-2. **Selection Committee Approval Workflow & Provisional Award Generator (Prompt 5.2):**
-   - Committee review interface & decision recording (`RECOMMENDED_FOR_SELECTION`, `REJECTED`).
-   - Generation of provisional award letters and digital sanction orders.
-   - Status transitions (`SUBMITTED` / `UNDER_REVIEW` -> `SELECTED` / `REJECTED`).
-   - Immutable audit logging of committee votes and final decisions.
-3. **Post-Selection Milestone Tracker & PFMS/DBT Disbursement Orchestration (Prompt 5.3):**
-   - Create and manage `PostSelectionRecord`.
-   - Track university joining reports, visa clearances (for NOS), and annual academic progress reports.
-   - Orchestrate simulated DBT installment releases via `MockDbtAdapter` with transaction tracking.
-4. **End-to-End Governance, Compliance Reporting & Final Verification (Prompt 5.4):**
-   - Comprehensive audit trail exporter and statutory compliance reports.
-   - Full regression and end-to-end multi-scholar lifecycle demonstration.
+### How `apps/api` Consumes `services/ai-ocr`:
+- **Base URL:** `http://localhost:8000` (or `AI_OCR_SERVICE_URL` from `.env`).
+- **Authentication:** Header `X-Internal-Api-Key: tribalscholar_internal_secret_key_2026`.
+- **Single Document Analysis:**
+  - `POST /internal/v1/ocr/analyze`
+  - Body: `{ "documentId": "...", "expectedType": "INCOME_CERTIFICATE", "fileBase64": "...", "applicantContext": { "applicantName": "Birsa Munda", "annualFamilyIncome": 80000, "category": "ST", "stateDomicile": "Jharkhand" } }`
+  - Returns: `{ "status": "VERIFIED"|"DEFICIENT", "overallConfidence": 0.94, "classification": {...}, "extractedFields": {...}, "comparisons": [...], "deficiencyReasons": [...] }`
+- **Batch Application Analysis:**
+  - `POST /internal/v1/ocr/analyze-batch`
+  - Body: `{ "applicationId": "...", "applicantContext": {...}, "documents": [...] }`
+  - Returns: `{ "applicationId": "...", "overallStatus": "VERIFIED"|"DEFICIENT", "verifiedCount": 4, "deficientCount": 0, "results": {...}, "crossDocChecks": [...], "bundleDeficiencies": [...] }`
+
+### Immediate Objectives for Phase 6 (Frontend Web Application & Governance):
+1. **Scholar Self-Service Intake Portal (`apps/web`):**
+   - Registration, multi-role login, and applicant profile completion.
+   - Scheme selection (`NFST` and `NOS`) and application drafting (`TS-NFST-2026-0001`).
+   - Multipart document upload dropzone with immediate OCR preview, bounding box visualizer, and live feedback on blurred/mismatched uploads.
+   - Application status timeline and deficiency response interface for replacement uploads.
+2. **Scrutiny Officer Verification Desk (`apps/web`):**
+   - Queue of submitted applications with filter by scheme, status, and deficiency flags.
+   - Split-screen verification workspace: rendered certificate preview with bounding boxes on the left, extracted fields with evidence badges (`page 1 · name field`) on the right.
+   - One-click approve or deficiency tagging with automated applicant notification.
+3. **Selection Committee Workspace & Quota Allocation:**
+   - Merit ranking engine computing academic scores and tie-breaking.
+   - Allocation against 30% female quota, PVTG representation, and state quotas.
+   - Provisional award letter and sanction order PDF generation.
+4. **Post-Selection & Statutory Governance Desk:**
+   - Joining report upload and university verification.
+   - DBT installment release simulation via `mockDbtAdapter`.
+   - Immutable audit trail explorer with full exportable compliance report.
